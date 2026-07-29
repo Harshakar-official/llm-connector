@@ -15,12 +15,13 @@ import (
 // OpenAIClient communicates with any OpenAI-compatible API
 // (vLLM, TGI, llama.cpp server, LM Studio, etc.).
 type OpenAIClient struct {
-	baseURL    string
-	httpClient *http.Client
+	baseURL       string
+	httpClient    *http.Client
+	maxBodySize   int64
 }
 
 // NewOpenAIClient creates a client for an OpenAI-compatible endpoint.
-func NewOpenAIClient(baseURL string) *OpenAIClient {
+func NewOpenAIClient(baseURL string, maxResponseSize int) *OpenAIClient {
 	base := strings.TrimRight(baseURL, "/")
 	if !strings.HasSuffix(base, "/v1") {
 		base += "/v1"
@@ -30,6 +31,7 @@ func NewOpenAIClient(baseURL string) *OpenAIClient {
 		httpClient: &http.Client{
 			Timeout: 5 * time.Minute,
 		},
+		maxBodySize: int64(maxResponseSize),
 	}
 }
 
@@ -51,7 +53,12 @@ func (o *OpenAIClient) ListModels() ([]models.ModelInfo, error) {
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	reader := io.ReadCloser(resp.Body)
+	if o.maxBodySize > 0 {
+		reader = http.MaxBytesReader(nil, resp.Body, o.maxBodySize)
+	}
+
+	body, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, fmt.Errorf("read models response: %w", err)
 	}
@@ -102,7 +109,12 @@ func (o *OpenAIClient) Generate(model, prompt string, opts map[string]interface{
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	reader := io.ReadCloser(resp.Body)
+	if o.maxBodySize > 0 {
+		reader = http.MaxBytesReader(nil, resp.Body, o.maxBodySize)
+	}
+
+	body, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, fmt.Errorf("read response: %w", err)
 	}

@@ -111,7 +111,12 @@ iwr -Uri https://raw.githubusercontent.com/Harshakar-official/llm-connector/main
 | `ollama_url` | `LLM_CONNECTOR_OLLAMA_URL` | `http://localhost:11434` | Preferred LLM address (auto-discovery falls back to common ports) |
 | `heartbeat_interval` | — | `30` | Seconds between heartbeats |
 | `reconnect_delay` | — | `5` | Seconds between reconnect attempts |
-| `health_port` | — | `9199` | Local HTTP port for health endpoint (localhost only) |
+| `health_port` | — | `9199` | Local HTTP port for health/metrics (localhost only) |
+| `log_format` | `LLM_CONNECTOR_LOG_FORMAT` | `text` | Log output: `text` or `json` |
+| `log_level` | `LLM_CONNECTOR_LOG_LEVEL` | `info` | Log level: `debug`, `info`, `warn`, `error` |
+| `tls_insecure` | `LLM_CONNECTOR_TLS_INSECURE` | `false` | Skip TLS verification (testing only) |
+| `ca_cert_path` | — | `""` | Path to custom CA certificate for the cloud platform |
+| `max_response_size` | `LLM_CONNECTOR_MAX_RESPONSE_SIZE` | `0` | Max bytes from LLM response (0 = unlimited) |
 | `data_dir` | — | `/opt/llm-connector/data` | Directory for persistent data (connector ID) |
 
 ## How to test

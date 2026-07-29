@@ -67,6 +67,8 @@ sudo chmod 755 "$BIN_PATH"
 # --- write config ---
 echo "==> Writing config..."
 sudo tee "$CONFIG_PATH" > /dev/null <<CONFIG
+CONFIG
+sudo chmod 600 "$CONFIG_PATH"
 {
     "api_key": "$API_KEY",
     "server_url": "$SERVER_URL",

@@ -2,8 +2,10 @@ package api
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"io"
 	"math"
 	"net/http"
 	"time"
@@ -11,7 +13,11 @@ import (
 	"github.com/llmconnector/connector/internal/models"
 )
 
-const requestTimeout = 15 * time.Second
+const (
+	requestTimeout    = 15 * time.Second
+	maxResponseBytes  = 10 << 20 // 10 MB limit on cloud API responses
+	maxErrorBodyBytes = 1 << 10  // 1 KB limit on error response bodies
+)
 
 // Client communicates with the cloud platform over HTTPS.
 type Client struct {
@@ -20,13 +26,19 @@ type Client struct {
 	httpClient *http.Client
 }
 
-// New creates a new API client.
-func New(baseURL, apiKey string) *Client {
+// New creates a new API client. tlsConfig can be nil for default Go TLS.
+func New(baseURL, apiKey string, tlsConfig *tls.Config) *Client {
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	if tlsConfig != nil {
+		transport.TLSClientConfig = tlsConfig
+	}
+
 	return &Client{
 		baseURL: baseURL,
 		apiKey:  apiKey,
 		httpClient: &http.Client{
-			Timeout: requestTimeout,
+			Timeout:   requestTimeout,
+			Transport: transport,
 		},
 	}
 }
@@ -60,11 +72,19 @@ func (c *Client) do(method, path string, body, out interface{}) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		return fmt.Errorf("unexpected status %d", resp.StatusCode)
+		limited := io.LimitReader(resp.Body, maxErrorBodyBytes)
+		bodyBytes, _ := io.ReadAll(limited)
+		return fmt.Errorf("unexpected status %d: %s", resp.StatusCode, string(bodyBytes))
+	}
+
+	// enforce response body size limit
+	reader := io.ReadCloser(resp.Body)
+	if maxResponseBytes > 0 {
+		reader = http.MaxBytesReader(nil, resp.Body, maxResponseBytes)
 	}
 
 	if out != nil {
-		if err := json.NewDecoder(resp.Body).Decode(out); err != nil {
+		if err := json.NewDecoder(reader).Decode(out); err != nil {
 			return fmt.Errorf("decode response: %w", err)
 		}
 	}
@@ -113,7 +133,6 @@ func (c *Client) UploadResult(req models.UploadResultRequest) error {
 	var resp models.UploadResultResponse
 	var lastErr error
 
-	// ponytail: linear retry with cap, exponential backoff if needed
 	for attempt := 0; attempt < 3; attempt++ {
 		if attempt > 0 {
 			time.Sleep(time.Duration(math.Pow(2, float64(attempt))) * time.Second)

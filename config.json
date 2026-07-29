@@ -5,5 +5,10 @@
     "heartbeat_interval": 30,
     "reconnect_delay": 5,
     "health_port": 9199,
+    "log_format": "text",
+    "log_level": "info",
+    "tls_insecure": false,
+    "ca_cert_path": "",
+    "max_response_size": 0,
     "data_dir": "/opt/llm-connector/data"
 }

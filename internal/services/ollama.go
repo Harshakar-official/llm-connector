@@ -21,23 +21,25 @@ type OllamaResult struct {
 
 // OllamaClient interacts with a local Ollama instance.
 type OllamaClient struct {
-	baseURL    string
-	httpClient *http.Client
+	baseURL       string
+	httpClient    *http.Client
+	maxBodySize   int64
 }
 
 // NewOllamaClient creates a client pointing at the local Ollama server.
-func NewOllamaClient(baseURL string) *OllamaClient {
+// maxResponseSize limits the response body in bytes; 0 = unlimited.
+func NewOllamaClient(baseURL string, maxResponseSize int) *OllamaClient {
 	return &OllamaClient{
 		baseURL: baseURL,
 		httpClient: &http.Client{
 			Timeout: 5 * time.Minute,
 		},
+		maxBodySize: int64(maxResponseSize),
 	}
 }
 
 func (o *OllamaClient) Name() string { return LLMTypeOllama }
 
-// CheckAlive returns true if Ollama responds at the configured address.
 func (o *OllamaClient) CheckAlive() bool {
 	resp, err := o.httpClient.Get(o.baseURL)
 	if err != nil {
@@ -47,7 +49,6 @@ func (o *OllamaClient) CheckAlive() bool {
 	return resp.StatusCode == http.StatusOK
 }
 
-// ListModels returns all models available on the local Ollama instance.
 func (o *OllamaClient) ListModels() ([]models.ModelInfo, error) {
 	resp, err := o.httpClient.Get(o.baseURL + "/api/tags")
 	if err != nil {
@@ -55,7 +56,12 @@ func (o *OllamaClient) ListModels() ([]models.ModelInfo, error) {
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	reader := io.ReadCloser(resp.Body)
+	if o.maxBodySize > 0 {
+		reader = http.MaxBytesReader(nil, resp.Body, o.maxBodySize)
+	}
+
+	body, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, fmt.Errorf("read ollama tags: %w", err)
 	}
@@ -70,7 +76,6 @@ func (o *OllamaClient) ListModels() ([]models.ModelInfo, error) {
 	return tagsResp.Models, nil
 }
 
-// Generate sends a prompt to Ollama and returns the result.
 func (o *OllamaClient) Generate(model, prompt string, opts map[string]interface{}) (*OllamaResult, error) {
 	reqBody := map[string]interface{}{
 		"model":  model,
@@ -93,7 +98,12 @@ func (o *OllamaClient) Generate(model, prompt string, opts map[string]interface{
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	reader := io.ReadCloser(resp.Body)
+	if o.maxBodySize > 0 {
+		reader = http.MaxBytesReader(nil, resp.Body, o.maxBodySize)
+	}
+
+	body, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, fmt.Errorf("read ollama generate response: %w", err)
 	}
@@ -117,8 +127,6 @@ func (o *OllamaClient) Generate(model, prompt string, opts map[string]interface{
 	elapsed := time.Since(start)
 	latencyMs := elapsed.Milliseconds()
 
-	// Use wall-clock time since it best represents the user experience.
-	// Fall back to Ollama's reported duration if available.
 	if genResp.TotalDuration > 0 {
 		latencyMs = genResp.TotalDuration / 1_000_000
 	}

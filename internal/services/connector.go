@@ -4,22 +4,36 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
+	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/llmconnector/connector/internal/api"
 	"github.com/llmconnector/connector/internal/config"
+	"github.com/llmconnector/connector/internal/metrics"
 	"github.com/llmconnector/connector/internal/models"
 	"github.com/llmconnector/connector/internal/utils"
 	"github.com/llmconnector/connector/internal/websocket"
 )
 
 const version = "1.0.0"
+
+// Prometheus metrics
+var (
+	metricJobsReceived = metrics.NewCounter("llm_connector_jobs_received_total", "Benchmark jobs received from platform")
+	metricJobsDone     = metrics.NewCounter("llm_connector_jobs_completed_total", "Benchmark jobs completed")
+	metricJobsFailed   = metrics.NewCounter("llm_connector_jobs_failed_total", "Benchmark jobs that failed")
+	metricHeartbeats   = metrics.NewCounter("llm_connector_heartbeats_total", "Heartbeats sent to platform")
+	metricWSConnects   = metrics.NewCounter("llm_connector_websocket_connects_total", "WebSocket connection attempts")
+	metricLLMOnline    = metrics.NewGauge("llm_connector_llm_online", "Whether the local LLM is reachable (1=online, 0=offline)")
+	metricWSConnected  = metrics.NewGauge("llm_connector_websocket_connected", "Whether WebSocket is connected (1=yes, 0=no)")
+	metricActiveJobs   = metrics.NewGauge("llm_connector_active_jobs", "Currently active benchmark jobs")
+)
 
 // Connector is the top-level orchestrator that wires all components together.
 type Connector struct {
@@ -30,15 +44,18 @@ type Connector struct {
 	runner    *BenchmarkRunner
 	ws        *websocket.Client
 
-	connectorID string
-	llmOnline   atomic.Bool
-	activeJobs  atomic.Int32
+	connectorID       string
+	llmOnline         atomic.Bool
+	activeJobs        atomic.Int32
+	cachedModelsCount atomic.Int32
 
 	startedAt          time.Time
 	lastHeartbeatOK    atomic.Bool
-	lastHeartbeatTime  atomic.Value // time.Time
+	lastHeartbeatTime  atomic.Value
 	platformReachable  atomic.Bool
 	healthServer       *http.Server
+
+	jobWg sync.WaitGroup
 }
 
 // New creates a new Connector from the given configuration.
@@ -47,9 +64,16 @@ func New(cfg *config.Config) *Connector {
 }
 
 // Run starts the connector and blocks until the context is cancelled.
+// When the context is cancelled, it drains active jobs before returning.
 func (c *Connector) Run(ctx context.Context) error {
 	c.startedAt = time.Now()
-	c.apiClient = api.New(c.cfg.ServerURL, c.cfg.APIKey)
+
+	tlsCfg, err := c.cfg.TLSConfig()
+	if err != nil {
+		return fmt.Errorf("TLS config: %w", err)
+	}
+
+	c.apiClient = api.New(c.cfg.ServerURL, c.cfg.APIKey, tlsCfg)
 
 	if err := c.loadOrCreateID(); err != nil {
 		return fmt.Errorf("connector id: %w", err)
@@ -69,16 +93,41 @@ func (c *Connector) Run(ctx context.Context) error {
 	go c.startHealthServer(ctx)
 
 	c.ws = websocket.New(c.cfg.ServerURL, c.cfg.APIKey, c.connectorID, c.handleWSMessage)
+	if tlsCfg != nil {
+		c.ws.SetTLSConfig(tlsCfg)
+	}
+	c.ws.OnConnect(func(connected bool) {
+		slog.Debug("websocket state changed", "connected", connected)
+	})
 	go c.ws.Connect(ctx, time.Duration(c.cfg.ReconnectDelay)*time.Second)
 
 	llmInfo := c.llmType
 	if llmInfo == LLMTypeNone {
 		llmInfo = "no LLM detected"
 	}
-	log.Printf("connector %s running on %s/%s [llm: %s]", c.connectorID, runtime.GOOS, runtime.GOARCH, llmInfo)
+	slog.Info("connector running",
+		"connector_id", c.connectorID,
+		"os", runtime.GOOS,
+		"arch", runtime.GOARCH,
+		"llm", llmInfo,
+	)
 
 	<-ctx.Done()
-	log.Println("connector shutting down")
+	slog.Info("connector shutting down, draining active jobs")
+
+	// drain active jobs with a timeout
+	drainDone := make(chan struct{})
+	go func() {
+		c.jobWg.Wait()
+		close(drainDone)
+	}()
+	select {
+	case <-drainDone:
+		slog.Info("all jobs completed")
+	case <-time.After(30 * time.Second):
+		slog.Warn("drain timeout, forcing shutdown")
+	}
+
 	if c.healthServer != nil {
 		c.healthServer.Shutdown(context.Background())
 	}
@@ -94,6 +143,7 @@ func (c *Connector) loadOrCreateID() error {
 	data, err := os.ReadFile(idPath)
 	if err == nil {
 		c.connectorID = string(data)
+		slog.Debug("loaded existing connector id", "connector_id", c.connectorID)
 		return nil
 	}
 
@@ -106,7 +156,7 @@ func (c *Connector) loadOrCreateID() error {
 		return fmt.Errorf("save connector id: %w", err)
 	}
 
-	log.Printf("generated new connector id: %s", c.connectorID)
+	slog.Info("generated new connector id", "connector_id", c.connectorID)
 	return nil
 }
 
@@ -123,7 +173,7 @@ func (c *Connector) register(ctx context.Context) error {
 		return fmt.Errorf("register request: %w", err)
 	}
 
-	log.Println("registered with cloud platform")
+	slog.Info("registered with cloud platform")
 	return nil
 }
 
@@ -133,13 +183,13 @@ func (c *Connector) initLLM() {
 
 	switch llmType {
 	case LLMTypeOllama:
-		c.llm = NewOllamaClient(baseURL)
-		log.Printf("detected Ollama at %s", baseURL)
+		c.llm = NewOllamaClient(baseURL, c.cfg.MaxResponseSize)
+		slog.Info("detected LLM", "type", LLMTypeOllama, "url", baseURL)
 	case LLMTypeOpenAI:
-		c.llm = NewOpenAIClient(baseURL)
-		log.Printf("detected OpenAI-compatible server at %s", baseURL)
+		c.llm = NewOpenAIClient(baseURL, c.cfg.MaxResponseSize)
+		slog.Info("detected LLM", "type", LLMTypeOpenAI, "url", baseURL)
 	default:
-		log.Printf("no local LLM detected (probed: %s)", c.cfg.OllamaURL)
+		slog.Warn("no local LLM detected", "probed", c.cfg.OllamaURL)
 		return
 	}
 
@@ -154,7 +204,7 @@ func (c *Connector) reportModels() {
 
 	modelsList, err := c.llm.ListModels()
 	if err != nil {
-		log.Printf("list models: %v", err)
+		slog.Warn("list models", "error", err)
 		return
 	}
 
@@ -169,27 +219,50 @@ func (c *Connector) reportModels() {
 		_ = c.ws.SendMessage(msg)
 	}
 
-	log.Printf("advertised %d models to platform", len(modelsList))
+	slog.Info("advertised models to platform", "count", len(modelsList))
 }
 
-// --- health server ---
+// --- health & metrics server ---
 
 func (c *Connector) startHealthServer(ctx context.Context) {
 	addr := fmt.Sprintf("127.0.0.1:%d", c.cfg.HealthPort)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", c.healthHandler)
+	mux.HandleFunc("/metrics", c.metricsHandler)
 
 	c.healthServer = &http.Server{Addr: addr, Handler: mux}
 
-	log.Printf("health server listening on http://%s/health", addr)
+	slog.Info("health server listening", "addr", addr)
 	if err := c.healthServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Printf("health server error: %v", err)
+		slog.Error("health server", "error", err)
 	}
 }
 
 func (c *Connector) healthHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(c.buildHealthPayload())
+}
+
+func (c *Connector) metricsHandler(w http.ResponseWriter, r *http.Request) {
+	// update live gauges before rendering
+	c.updateLiveGauges()
+
+	w.Header().Set("Content-Type", "text/plain; version=0.0.4")
+	metrics.Render(w)
+}
+
+func (c *Connector) updateLiveGauges() {
+	if c.llmOnline.Load() {
+		metricLLMOnline.Set(1)
+	} else {
+		metricLLMOnline.Set(0)
+	}
+	if c.ws != nil && c.ws.IsConnected() {
+		metricWSConnected.Set(1)
+	} else {
+		metricWSConnected.Set(0)
+	}
+	metricActiveJobs.Set(int64(c.activeJobs.Load()))
 }
 
 func (c *Connector) buildHealthPayload() map[string]interface{} {
@@ -254,14 +327,7 @@ func (c *Connector) buildHealthPayload() map[string]interface{} {
 		"active_jobs": c.activeJobs.Load(),
 	}
 
-	modelsCount := 0
-	if c.llm != nil && llmConnected {
-		models, err := c.llm.ListModels()
-		if err == nil {
-			modelsCount = len(models)
-		}
-	}
-	payload["llm"].(map[string]interface{})["models_count"] = modelsCount
+	payload["llm"].(map[string]interface{})["models_count"] = c.cachedModelsCount.Load()
 
 	return payload
 }
@@ -279,7 +345,6 @@ func (c *Connector) heartbeatLoop(ctx context.Context) {
 		case <-ticker.C:
 		}
 
-		// platform health check
 		ph, err := c.apiClient.HealthCheck()
 		c.platformReachable.Store(err == nil && ph != nil && ph.Reachable)
 		c.lastHeartbeatTime.Store(time.Now())
@@ -295,9 +360,10 @@ func (c *Connector) heartbeatLoop(ctx context.Context) {
 			if llmConnected {
 				available, err := c.llm.ListModels()
 				if err != nil {
-					log.Printf("heartbeat: list models: %v", err)
+					slog.Warn("heartbeat: list models", "error", err)
 				} else {
 					modelsCount = len(available)
+					c.cachedModelsCount.Store(int32(modelsCount))
 				}
 			}
 		}
@@ -320,8 +386,9 @@ func (c *Connector) heartbeatLoop(ctx context.Context) {
 			ActiveJobs:  int(c.activeJobs.Load()),
 		}
 
+		metricHeartbeats.Inc()
 		if err := c.apiClient.Heartbeat(req); err != nil {
-			log.Printf("heartbeat failed: %v", err)
+			slog.Warn("heartbeat failed", "error", err)
 			c.lastHeartbeatOK.Store(false)
 		} else {
 			c.lastHeartbeatOK.Store(true)
@@ -342,7 +409,7 @@ func (c *Connector) handleWSMessage(msg models.WSMessage) {
 	case "run_benchmark":
 		c.handleRunBenchmark(msg)
 	default:
-		log.Printf("unknown ws message type: %s", msg.Type)
+		slog.Warn("unknown ws message type", "type", msg.Type)
 	}
 }
 
@@ -355,13 +422,13 @@ func (c *Connector) handleHealthCheck() {
 func (c *Connector) handleListModels(msg models.WSMessage) {
 	var req models.WSModelsRequest
 	if err := json.Unmarshal(msg.Payload, &req); err != nil {
-		log.Printf("list_models: invalid payload: %v", err)
+		slog.Warn("list_models: invalid payload", "error", err)
 		return
 	}
 
 	modelsList, err := c.llm.ListModels()
 	if err != nil {
-		log.Printf("list_models: llm error: %v", err)
+		slog.Warn("list_models: llm error", "error", err)
 		return
 	}
 
@@ -373,30 +440,49 @@ func (c *Connector) handleListModels(msg models.WSMessage) {
 	out := models.WSMessage{Type: "models_list", Payload: payload}
 
 	if err := c.ws.SendMessage(out); err != nil {
-		log.Printf("list_models: send response: %v", err)
+		slog.Warn("list_models: send response", "error", err)
 	}
 }
 
 func (c *Connector) handleRunBenchmark(msg models.WSMessage) {
 	var req models.WSRunRequest
 	if err := json.Unmarshal(msg.Payload, &req); err != nil {
-		log.Printf("run_benchmark: invalid payload: %v", err)
+		slog.Warn("run_benchmark: invalid payload", "error", err)
 		return
 	}
 
+	metricJobsReceived.Inc()
 	c.activeJobs.Add(1)
-	defer c.activeJobs.Add(-1)
+	c.jobWg.Add(1)
 
-	log.Printf("running benchmark job %s on model %s", req.Job.JobID, req.Job.Model)
-	result := c.runner.Execute(req.Job)
-	result.ConnectorID = c.connectorID
+	go func() {
+		defer c.jobWg.Done()
+		defer c.activeJobs.Add(-1)
 
-	uploadReq := models.UploadResultRequest{Result: result}
-	if err := c.apiClient.UploadResult(uploadReq); err != nil {
-		log.Printf("upload result for job %s after retries: %v", req.Job.JobID, err)
-		return
-	}
+		slog.Info("running benchmark job",
+			"job_id", req.Job.JobID,
+			"model", req.Job.Model,
+		)
 
-	log.Printf("uploaded result for job %s (latency=%dms tokens=%d/%d)",
-		result.JobID, result.LatencyMs, result.TokensIn, result.TokensOut)
+		result := c.runner.Execute(req.Job)
+		result.ConnectorID = c.connectorID
+
+		uploadReq := models.UploadResultRequest{Result: result}
+		if err := c.apiClient.UploadResult(uploadReq); err != nil {
+			slog.Error("upload result",
+				"job_id", req.Job.JobID,
+				"error", err,
+			)
+			metricJobsFailed.Inc()
+			return
+		}
+
+		metricJobsDone.Inc()
+		slog.Info("uploaded result",
+			"job_id", result.JobID,
+			"latency_ms", result.LatencyMs,
+			"tokens_in", result.TokensIn,
+			"tokens_out", result.TokensOut,
+		)
+	}()
 }

@@ -2,9 +2,10 @@ package websocket
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"sync"
 	"time"
@@ -23,14 +24,18 @@ const (
 // MessageHandler is called when a WebSocket message is received.
 type MessageHandler func(msg models.WSMessage)
 
+// ConnectHandler is called when the WebSocket connects or disconnects.
+type ConnectHandler func(connected bool)
+
 // Client manages the WebSocket connection to the cloud platform.
 type Client struct {
-	serverURL string
-	apiKey    string
-	connID    string
-	dialer    *gorilla.Dialer
-
-	handler MessageHandler
+	serverURL     string
+	apiKey        string
+	connID        string
+	dialer        *gorilla.Dialer
+	handler       MessageHandler
+	onConnect     ConnectHandler
+	tlsConfig     *tls.Config
 
 	mu   sync.Mutex
 	conn *gorilla.Conn
@@ -47,6 +52,24 @@ func New(serverURL, apiKey, connID string, handler MessageHandler) *Client {
 	}
 }
 
+// SetTLSConfig sets the TLS config for the WebSocket dialer.
+// Must be called before Connect.
+func (c *Client) SetTLSConfig(tc *tls.Config) {
+	c.tlsConfig = tc
+}
+
+// OnConnect registers a callback for connection state changes.
+func (c *Client) OnConnect(fn ConnectHandler) {
+	c.onConnect = fn
+}
+
+// IsConnected returns true if the WebSocket is currently connected.
+func (c *Client) IsConnected() bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.conn != nil
+}
+
 // Connect establishes the WebSocket connection and starts the read pump.
 // Blocks until the context is cancelled or the connection is permanently lost.
 func (c *Client) Connect(ctx context.Context, reconnectDelay time.Duration) {
@@ -61,9 +84,18 @@ func (c *Client) Connect(ctx context.Context, reconnectDelay time.Duration) {
 		header := http.Header{}
 		header.Set("Authorization", "Bearer "+c.apiKey)
 
-		conn, _, err := c.dialer.Dial(url, header)
+		// apply TLS config if set
+		dialer := c.dialer
+		if c.tlsConfig != nil {
+			dialer = &gorilla.Dialer{
+				HandshakeTimeout:  10 * time.Second,
+				TLSClientConfig:   c.tlsConfig,
+			}
+		}
+
+		conn, _, err := dialer.Dial(url, header)
 		if err != nil {
-			log.Printf("websocket dial failed: %v (retry in %v)", err, reconnectDelay)
+			slog.Warn("websocket dial failed", "error", err, "retry_in", reconnectDelay)
 			select {
 			case <-ctx.Done():
 				return
@@ -72,7 +104,7 @@ func (c *Client) Connect(ctx context.Context, reconnectDelay time.Duration) {
 			continue
 		}
 
-		log.Printf("websocket connected to %s", url)
+		slog.Info("websocket connected", "server", c.serverURL)
 		conn.SetPongHandler(func(string) error {
 			_ = conn.SetReadDeadline(time.Now().Add(pongWait))
 			return nil
@@ -82,6 +114,10 @@ func (c *Client) Connect(ctx context.Context, reconnectDelay time.Duration) {
 		c.conn = conn
 		c.mu.Unlock()
 
+		if c.onConnect != nil {
+			c.onConnect(true)
+		}
+
 		c.readPump(ctx, conn)
 
 		c.mu.Lock()
@@ -89,7 +125,11 @@ func (c *Client) Connect(ctx context.Context, reconnectDelay time.Duration) {
 		c.mu.Unlock()
 		conn.Close()
 
-		log.Printf("websocket disconnected, reconnecting in %v", reconnectDelay)
+		if c.onConnect != nil {
+			c.onConnect(false)
+		}
+
+		slog.Info("websocket disconnected", "reconnect_in", reconnectDelay)
 		select {
 		case <-ctx.Done():
 			return
@@ -98,16 +138,7 @@ func (c *Client) Connect(ctx context.Context, reconnectDelay time.Duration) {
 	}
 }
 
-// IsConnected returns true if the WebSocket is currently connected.
-func (c *Client) IsConnected() bool {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	return c.conn != nil
-}
-
 // SendMessage sends a message over the active WebSocket connection.
-// Returns nil if the message was written successfully.
-// Returns an error if there is no active connection.
 func (c *Client) SendMessage(msg models.WSMessage) error {
 	c.mu.Lock()
 	conn := c.conn
@@ -136,14 +167,14 @@ func (c *Client) readPump(ctx context.Context, conn *gorilla.Conn) {
 		if err != nil {
 			if gorilla.IsUnexpectedCloseError(err,
 				gorilla.CloseGoingAway, gorilla.CloseNormalClosure) {
-				log.Printf("websocket read error: %v", err)
+				slog.Warn("websocket read error", "error", err)
 			}
 			return
 		}
 
 		var msg models.WSMessage
 		if err := json.Unmarshal(data, &msg); err != nil {
-			log.Printf("invalid websocket message: %v", err)
+			slog.Warn("invalid websocket message", "error", err)
 			continue
 		}
 
