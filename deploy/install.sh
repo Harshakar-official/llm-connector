@@ -29,6 +29,7 @@ if [ ! -f "$CONFIG_DST" ]; then
     "ollama_url": "http://localhost:11434",
     "heartbeat_interval": 30,
     "reconnect_delay": 5,
+    "health_port": 9199,
     "data_dir": "/opt/llm-connector/data"
 }
 EOF
