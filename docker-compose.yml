@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+  connector:
+    build: .
+    container_name: llm-connector
+    restart: unless-stopped
+    environment:
+      LLM_CONNECTOR_API_KEY: "${LLM_CONNECTOR_API_KEY}"
+      LLM_CONNECTOR_SERVER_URL: "${LLM_CONNECTOR_SERVER_URL:-https://api.llmconnector.example.com}"
+      LLM_CONNECTOR_OLLAMA_URL: "${LLM_CONNECTOR_OLLAMA_URL:-http://host.docker.internal:11434}"
+    volumes:
+      - connector-data:/app/data
+    network_mode: host
+
+volumes:
+  connector-data:

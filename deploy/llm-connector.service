@@ -1,0 +1,17 @@
+[Unit]
+Description=LLM Connector – local Ollama bridge to cloud testing platform
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/llm-connector
+EnvironmentFile=-/etc/llm-connector.env
+ExecStart=/opt/llm-connector/connector /opt/llm-connector/config.json
+Restart=always
+RestartSec=10
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

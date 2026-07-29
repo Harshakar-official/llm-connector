@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.llmconnector.connector</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/llm-connector/connector</string>
+        <string>/opt/llm-connector/config.json</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/opt/llm-connector</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin</string>
+    </dict>
+    <key>KeepAlive</key>
+    <true/>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/opt/llm-connector/connector.log</string>
+    <key>StandardErrorPath</key>
+    <string>/opt/llm-connector/connector.log</string>
+</dict>
+</plist>
