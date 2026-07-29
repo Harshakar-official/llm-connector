@@ -5,6 +5,36 @@ llama.cpp, LM Studio, or any OpenAI-compatible server) to your cloud testing
 platform. Uses **outbound-only HTTPS and WebSocket** — no VPN, no port
 forwarding, no inbound firewall rules.
 
+## One-command install
+
+Run this on the client machine (requires sudo).
+
+### Linux / macOS
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Harshakar-official/llm-connector/main/bootstrap.sh | sudo bash -s -- \
+  --api-key=YOUR_API_KEY \
+  --server-url=https://your-platform.com
+```
+
+### Windows (PowerShell as Administrator)
+
+```powershell
+iwr -Uri https://raw.githubusercontent.com/Harshakar-official/llm-connector/main/bootstrap.ps1 -OutFile bootstrap.ps1
+.\bootstrap.ps1 -ApiKey "YOUR_API_KEY" -ServerUrl "https://your-platform.com"
+```
+
+### What the script does
+
+1. Detects OS + architecture
+2. Downloads the correct binary from GitHub releases
+3. Writes `config.json` with your API key and server URL
+4. Installs as a **background service** (systemd / launchd / Windows Service)
+5. Starts the service
+6. Verifies health at `http://127.0.0.1:9199/health`
+
+**That's it.** The connector registers with your platform and waits for jobs.
+
 ## How it works
 
 ```
@@ -83,6 +113,84 @@ forwarding, no inbound firewall rules.
 | `reconnect_delay` | — | `5` | Seconds between reconnect attempts |
 | `health_port` | — | `9199` | Local HTTP port for health endpoint (localhost only) |
 | `data_dir` | — | `/opt/llm-connector/data` | Directory for persistent data (connector ID) |
+
+## How to test
+
+### 1. Install the connector on a machine with Ollama
+
+Pick any machine that has Ollama running (or just wants to test the connection):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Harshakar-official/llm-connector/main/bootstrap.sh | sudo bash -s -- \
+  --api-key=test-key-123 \
+  --server-url=https://your-platform.com
+```
+
+### 2. Verify it registered
+
+```bash
+# Check local health
+curl http://127.0.0.1:9199/health
+
+# Check service logs
+# Linux:
+sudo journalctl -u llm-connector -f
+# macOS:
+tail -f /opt/llm-connector/connector.log
+```
+
+Expected log output:
+```
+registered with cloud platform
+connector <uuid> running on linux/amd64 [llm: ollama]
+advertised 5 models to platform
+```
+
+### 3. Send a test job from your platform
+
+Your platform sends over the WebSocket:
+```json
+{
+  "type": "run_benchmark",
+  "payload": {
+    "job": {
+      "job_id": "test-001",
+      "model": "llama3",
+      "prompt": "What is 2+2?"
+    }
+  }
+}
+```
+
+### 4. Verify the result
+
+The connector will:
+1. Run the prompt on the local LLM
+2. Upload `BenchmarkResult` via `POST /api/v1/connectors/results`
+3. Log: `uploaded result for job test-001 (latency=1234ms tokens=10/50)`
+
+Check your platform's database for the result, or watch the connector logs.
+
+### 5. Verify health from the platform side
+
+Send a `health_check` message over WebSocket:
+```json
+{"type": "health_check", "payload": {}}
+```
+
+The connector responds with full health status over the same WebSocket:
+```json
+{
+  "type": "health_status",
+  "payload": {
+    "status": "ok",
+    "llm": {"type": "ollama", "status": "connected", "models_count": 5},
+    "platform": {"reachable": true, "last_heartbeat_ok": true},
+    "websocket": {"connected": true},
+    "active_jobs": 0
+  }
+}
+```
 
 ## Docker
 
