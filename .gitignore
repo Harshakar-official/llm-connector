@@ -2,3 +2,4 @@ connector
 *.exe
 data/
 .DS_Store
+build/
