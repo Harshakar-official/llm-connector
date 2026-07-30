@@ -10,5 +10,6 @@
     "tls_insecure": false,
     "ca_cert_path": "",
     "max_response_size": 0,
+    "scan_ports": "11434,8080,8000,5000,3000",
     "data_dir": "/opt/llm-connector/data"
 }

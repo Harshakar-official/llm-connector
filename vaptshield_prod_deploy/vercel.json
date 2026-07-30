@@ -1,0 +1,9 @@
+{
+  "installCommand": "npm install --legacy-peer-deps",
+  "crons": [
+    {
+      "path": "/api/presence/cleanup",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}

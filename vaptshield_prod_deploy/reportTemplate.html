@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Vulnerability Assessment Report — {{ client_name }}</title>
+<style>
+  /* ═══════════════════════════════════════════════════════════
+     COMPLIANCE PRINT ENGINE (PAGED MEDIA)
+     ═══════════════════════════════════════════════════════════ */
+  /* Target standard content pages */
+  @page standard-page {
+    size: A4;
+    margin: 24mm 18mm 22mm 18mm;
+  }
+
+  /* Target Cover Page explicitly to kill headers/footers */
+  @page cover-page {
+    size: A4;
+    margin: 0;
+  }
+
+  /* Target End Page explicitly to kill headers/footers */
+  @page end-page {
+    size: A4;
+    margin: 0;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     GLOBAL RESETS & TYPOGRAPHY
+     ═══════════════════════════════════════════════════════════ */
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 9.5pt;
+    line-height: 1.6;
+    color: #334155;
+    background: #ffffff;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4 { font-weight: 700; color: #0f172a; letter-spacing: -0.02em; }
+  h1 { font-size: 20pt; margin-bottom: 16px; }
+  h2 { font-size: 14pt; margin: 24px 0 12px; padding-bottom: 6px; border-bottom: 1px solid #e2e8f0; }
+  h3 { font-size: 10.5pt; margin: 16px 0 8px; text-transform: uppercase; letter-spacing: 0.05em; color: #475569; }
+
+  p { margin-bottom: 10px; }
+  a { color: #2563eb; text-decoration: none; }
+  ul, ol { padding-left: 20px; margin-bottom: 12px; }
+  li { margin-bottom: 4px; }
+
+  code, pre, .mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8pt;
+    background: #f1f5f9;
+    padding: 2px 5px;
+    border-radius: 4px;
+    color: #0f172a;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     PAGE STRUCTURING ELEMENTAL LAYERS
+     ═══════════════════════════════════════════════════════════ */
+  .cover-layout {
+    page: cover-page;
+    height: 100vh;
+    background: #ffffff;
+    color: #0f172a;
+    padding: 30mm 20mm 20mm 20mm;
+    display: flex;
+    flex-direction: column;
+    page-break-after: always;
+  }
+
+  .end-layout {
+    page: end-page;
+    height: 100vh;
+    background: #ffffff;
+    color: #0f172a;
+    padding: 50mm 20mm 20mm 20mm;
+    text-align: center;
+    page-break-before: always;
+  }
+
+  .content-layout {
+    page: standard-page;
+    page-break-before: always;
+  }
+
+  .section-title {
+    font-size: 18pt;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 24px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #0f172a;
+  }
+  
+  .section-title .step-num {
+    background: #ffffff;
+    color: #0f172a;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11pt;
+    margin-right: 12px;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     PREMIUM COVER PAGE
+     ═══════════════════════════════════════════════════════════ */
+  .cover-classification {
+    align-self: flex-start;
+    padding: 4px 14px;
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid #ef4444;
+    color: #dc2626;
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border-radius: 4px;
+    margin-bottom: 35px;
+  }
+
+  .cover-logo {
+    font-size: 26pt;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -1.5px;
+    margin-bottom: 20px;
+  }
+  .cover-logo span { color: #3b82f6; }
+
+  .cover-title {
+    font-size: 30pt;
+    font-weight: 800;
+    line-height: 1.2;
+    color: #0f172a;
+    margin-bottom: 12px;
+    letter-spacing: -0.03em;
+  }
+
+  .cover-subtitle {
+    font-size: 12pt;
+    color: #475569;
+    font-weight: 400;
+    margin-bottom: 40px;
+  }
+
+  .cover-divider {
+    width: 80px;
+    height: 4px;
+    background: #3b82f6;
+    margin-bottom: 40px;
+    border-radius: 2px;
+  }
+
+  .cover-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px 40px;
+    margin-bottom: 45px;
+    max-width: 520px;
+  }
+
+  .cover-info-item .label {
+    font-size: 7.5pt;
+    text-transform: uppercase;
+    color: #64748b;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .cover-info-item .value {
+    font-size: 11pt;
+    font-weight: 600;
+    color: #0f172a;
+  }
+
+  .cover-risk-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 40px;
+    max-width: 520px;
+  }
+
+  .cover-stat-card {
+    flex: 1;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 12px;
+    text-align: center;
+  }
+  .cover-stat-card .stat-label {
+    font-size: 7pt;
+    text-transform: uppercase;
+    color: #64748b;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .cover-stat-card .stat-value {
+    font-size: 18pt;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #0f172a;
+  }
+  .cover-stat-card.risk .stat-value { font-size: 20pt; }
+  .cover-stat-card.critical { border-top: 3px solid #ef4444; }
+  .cover-stat-card.high { border-top: 3px solid #f97316; }
+
+  .cover-notice {
+    font-size: 8pt;
+    color: #64748b;
+    line-height: 1.6;
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     TABLE OF CONTENTS
+     ═══════════════════════════════════════════════════════════ */
+  .toc-item {
+    display: flex;
+    align-items: baseline;
+    padding: 12px 0;
+    border-bottom: 1px dashed #e2e8f0;
+  }
+  .toc-num { width: 35px; font-weight: 700; color: #2563eb; }
+  .toc-body { flex: 1; }
+  .toc-label { color: #0f172a; font-weight: 600; font-size: 10.5pt; }
+  .toc-desc { font-size: 8.5pt; color: #64748b; margin-top: 2px; }
+
+  /* ═══════════════════════════════════════════════════════════
+     METRICS & DATA TABLES
+     ═══════════════════════════════════════════════════════════ */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 14px;
+    border-top: 4px solid #0f172a;
+  }
+  .stat-card.critical { border-top-color: #dc2626; background: #fff5f5; }
+  .stat-card.high { border-top-color: #ea580c; background: #fffaf5; }
+  .stat-card.medium { border-top-color: #d97706; }
+
+  .stat-card .label {
+    font-size: 7.5pt;
+    text-transform: uppercase;
+    color: #64748b;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .stat-card .value {
+    font-size: 22pt;
+    font-weight: 800;
+    line-height: 1.1;
+    color: #0f172a;
+  }
+  .stat-card.critical .value { color: #dc2626; }
+  .stat-card.high .value { color: #ea580c; }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    font-size: 9pt;
+  }
+  .data-table th {
+    background: #ffffff;
+    color: #0f172a;
+    font-weight: 600;
+    text-align: left;
+    padding: 10px 12px;
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .data-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: middle;
+  }
+  .data-table tr:nth-child(even) td { background: #f8fafc; }
+
+  /* ═══════════════════════════════════════════════════════════
+     BADGES & FINDING CONTAINERS
+     ═══════════════════════════════════════════════════════════ */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 7.5pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: center;
+  }
+  .badge-critical { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+  .badge-high     { background: #ffedd5; color: #c2410c; border: 1px solid #fdba74; }
+  .badge-medium   { background: #fef9c3; color: #a16207; border: 1px solid #fde047; }
+  .badge-low      { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+  .badge-info     { background: #eff6ff; color: #1d4ed8; border: 1px solid #93c5fd; }
+
+  .finding-isolation-block {
+    page-break-before: always;
+    margin-bottom: 30px;
+  }
+
+  .vuln-header-bar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    background: #f8fafc;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+  }
+  .vuln-header-bar.critical { border-left: 5px solid #dc2626; background: #fff5f5; }
+  .vuln-header-bar.high     { border-left: 5px solid #ea580c; background: #fffaf5; }
+  .vuln-header-bar.medium   { border-left: 5px solid #d97706; }
+  .vuln-header-bar.low      { border-left: 5px solid #16a34a; }
+  .vuln-header-bar.info     { border-left: 5px solid #2563eb; }
+
+  .vuln-header-bar .vuln-title-text {
+    font-size: 12.5pt;
+    font-weight: 700;
+    color: #0f172a;
+    flex: 1;
+  }
+  .vuln-header-bar .vuln-id-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8pt;
+    color: #64748b;
+  }
+
+  .vuln-meta-container {
+    background: #fafafa;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 14px;
+    margin-bottom: 16px;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  
+  .vuln-meta-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+  }
+
+  .vuln-meta-item {
+    flex: 1 1 calc(50% - 24px);
+    display: flex;
+    font-size: 8.5pt;
+    align-items: baseline;
+  }
+  
+  .vuln-meta-item .meta-label {
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 7.5pt;
+    letter-spacing: 0.3px;
+    width: 110px;
+    flex-shrink: 0;
+  }
+  
+  .vuln-meta-item .meta-value { color: #1e293b; font-weight: 500; }
+  .vuln-meta-item style-full-width { flex: 1 1 100%; }
+
+  .vuln-section {
+    margin-bottom: 16px;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .vuln-section .section-label {
+    font-size: 9pt;
+    font-weight: 700;
+    color: #0f172a;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    padding-bottom: 3px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .rich-text { font-size: 9.5pt; color: #334155; line-height: 1.6; }
+
+  .code-block {
+    background: #0f172a;
+    color: #f8fafc;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8pt;
+    line-height: 1.5;
+    padding: 12px;
+    border-radius: 6px;
+    margin: 8px 0;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #f1f5f9;
+    color: #475569;
+    border-radius: 4px;
+    font-size: 7pt;
+    font-weight: 600;
+    margin-right: 4px;
+    border: 1px solid #e2e8f0;
+  }
+
+  .cve-verified { padding: 2px 6px; background: #dcfce7; color: #166534; border-radius: 4px; font-size: 7pt; font-weight: 700; margin-left: 6px; }
+  .cve-unverified { padding: 2px 6px; background: #fef3c7; color: #92400e; border-radius: 4px; font-size: 7pt; font-weight: 700; margin-left: 6px; }
+
+  /* ═══════════════════════════════════════════════════════════
+     PROOF OF CONCEPT IMAGES & EVIDENCE
+     ═══════════════════════════════════════════════════════════ */
+  .poc-step { margin-bottom: 10px; font-size: 9.5pt; color: #1e293b; }
+  .poc-step .step-num { font-weight: 700; color: #0f172a; }
+
+  .poc-image-container {
+    margin: 12px 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 10px;
+    background: #f8fafc;
+    text-align: center;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .poc-image-container img {
+    max-width: 100%;
+    height: auto;
+    max-height: 85mm;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+    border-radius: 4px;
+  }
+  .poc-image-container .poc-caption {
+    font-size: 7.5pt;
+    color: #64748b;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-top: 8px;
+  }
+
+  .color-swatch {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border-radius: 3px;
+    vertical-align: middle;
+    border: 1px solid rgba(0,0,0,0.1);
+  }
+
+  .end-icon { font-size: 42pt; color: #475569; margin-bottom: 20px; }
+  .end-divider { width: 60px; height: 2px; background: #334155; margin: 24px auto; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- COVER PAGE (Isolated named engine context)                     -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="cover-layout">
+  <div class="cover-classification">Confidential</div>
+
+  <div class="cover-logo">
+    {% if org_logo_b64 %}
+      <img src="data:image/png;base64,{{ org_logo_b64 }}" alt="Organization Logo" style="max-height: 90px; width: auto; object-fit: contain; display: block;">
+    {% elif org_logo_url %}
+      <img src="{{ org_logo_url }}" alt="Organization Logo" style="max-height: 90px; width: auto; object-fit: contain; display: block;">
+    {% else %}
+      <img src="https://static.wixstatic.com/media/24009a_3758253333754e8f9daf325c9d69b2c9~mv2.png/v1/fill/w_165,h_107,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/SecPrima%20Final%20Logo.png" alt="SecPrima Logo" style="max-height: 90px; width: auto; object-fit: contain; display: block;">
+    {% endif %}
+  </div>
+
+  <div class="cover-title">Vulnerability Assessment<br>&amp; Penetration Testing Report</div>
+  <div class="cover-subtitle">Comprehensive Infrastructure Security Diagnostics Engine</div>
+
+  <div class="cover-divider"></div>
+
+  <div class="cover-info-grid">
+    <div class="cover-info-item">
+      <div class="label">Prepared For</div>
+      <div class="value">{{ client_name }}</div>
+    </div>
+    <div class="cover-info-item">
+      <div class="label">Report Date</div>
+      <div class="value">{{ report_date }}</div>
+    </div>
+    <div class="cover-info-item">
+      <div class="label">Assessment Type</div>
+      <div class="value">{{ exec_summary.project_type|replace("_", " ")|title or "Vulnerability Assessment" }}</div>
+    </div>
+    <div class="cover-info-item">
+      <div class="label">Report ID</div>
+      <div class="value">VAPT-{{ report_date|replace("-", "") }}</div>
+    </div>
+  </div>
+
+  <div class="cover-risk-row">
+    <div class="cover-stat-card risk">
+      <div class="stat-label">Risk Posture</div>
+      <div class="stat-value" style="color:
+        {%- if risk_score|upper in ('F','E') %}#ef4444
+        {%- elif risk_score|upper == 'D' %}#f97316
+        {%- elif risk_score|upper == 'C' %}#eab308
+        {%- elif risk_score|upper == 'B' %}#22c55e
+        {%- elif risk_score|upper == 'A' %}#4ade80
+        {%- else %}#ffffff{% endif %}">
+        {{ risk_score|default("—") }}
+      </div>
+    </div>
+    <div class="cover-stat-card">
+      <div class="stat-label">Total Vulnerabilities</div>
+      <div class="stat-value">{{ exec_summary.total_findings }}</div>
+    </div>
+    <div class="cover-stat-card critical">
+      <div class="stat-label">Critical Flaws</div>
+      <div class="stat-value">{{ exec_summary.critical_count }}</div>
+    </div>
+    <div class="cover-stat-card high">
+      <div class="stat-label">High Risk</div>
+      <div class="stat-value">{{ exec_summary.high_count }}</div>
+    </div>
+  </div>
+
+  {% if exec_summary.ai_summary %}
+  <div style="text-align:left; font-size:8.5pt; color:#475569; background:#f8fafc; border-left:3px solid #3b82f6; border-radius:4px; padding:10px 14px; margin-bottom:20px;">
+    <span style="font-weight:700; color:#0f172a; text-transform:uppercase; font-size:7pt; letter-spacing:0.5px; display:block; margin-bottom:2px;">Document Brief Abstract</span>
+    <em>Target evaluation diagnostics processed under standard operational security baselines.</em>
+  </div>
+  {% endif %}
+
+  <div class="cover-notice">
+    This document contains asset vulnerabilities and sensitive technical risk structures of {{ client_name }}. Stored data operations are subject to nondisclosure requirements.
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- TABLE OF CONTENTS                                             -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="content-layout" id="section-toc">
+  <div class="section-title">
+    <span class="step-num">&#9776;</span>
+    Table of Contents
+  </div>
+
+  <div class="toc-item">
+    <div class="toc-num">1</div>
+    <div class="toc-body">
+      <div class="toc-label"><a href="#exec-summary" style="color: inherit;">Executive Summary</a></div>
+      <div class="toc-desc">Risk posture mapping indices, metric scopes, and structural severity distribution vectors</div>
+    </div>
+  </div>
+  <div class="toc-item">
+    <div class="toc-num">2</div>
+    <div class="toc-body">
+      <div class="toc-label"><a href="#scope" style="color: inherit;">Scope &amp; Methodology</a></div>
+      <div class="toc-desc">Asset context targets boundaries, analytical verification pipelines, and framework standards mappings</div>
+    </div>
+  </div>
+  <div class="toc-item">
+    <div class="toc-num">3</div>
+    <div class="toc-body">
+      <div class="toc-label"><a href="#vuln-overview" style="color: inherit;">Vulnerability Overview</a></div>
+      <div class="toc-desc">Tabular summary of identified vulnerabilities prioritized systematically by threat severity matrices</div>
+    </div>
+  </div>
+  <div class="toc-item">
+    <div class="toc-num">4</div>
+    <div class="toc-body">
+      <div class="toc-label"><a href="#detailed-findings" style="color: inherit;">Detailed Findings</a></div>
+      <div class="toc-desc">Deep technical structural analysis, reproduce steps, runtimes, and engineering remediation fixes</div>
+    </div>
+  </div>
+  <div class="toc-item">
+    <div class="toc-num">A</div>
+    <div class="toc-body">
+      <div class="toc-label">Appendix A — Severity Ratings</div>
+      <div class="toc-desc">CVSS v4.0 standard engineering operational classification metrics metrics</div>
+    </div>
+  </div>
+  <div class="toc-item">
+    <div class="toc-num">B</div>
+    <div class="toc-body">
+      <div class="toc-label">Appendix B — Status Definitions</div>
+      <div class="toc-desc">Workflow lifecycle states governing vulnerability engineering states</div>
+    </div>
+  </div>
+  <div class="toc-item">
+    <div class="toc-num">C</div>
+    <div class="toc-body">
+      <div class="toc-label">Appendix C — Standards Mapping</div>
+      <div class="toc-desc">MITRE CWE definitions cross-referenced cleanly to OWASP security paradigms</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- 1. EXECUTIVE SUMMARY                                          -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="content-layout" id="section-executive-summary">
+  <div class="section-title"><span class="step-num">1</span> Executive Summary</div>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="label">Total Findings</div>
+      <div class="value">{{ exec_summary.total_findings }}</div>
+    </div>
+    <div class="stat-card critical">
+      <div class="label">Critical</div>
+      <div class="value">{{ exec_summary.critical_count }}</div>
+    </div>
+    <div class="stat-card high">
+      <div class="label">High</div>
+      <div class="value">{{ exec_summary.high_count }}</div>
+    </div>
+    <div class="stat-card medium">
+      <div class="label">Medium</div>
+      <div class="value">{{ exec_summary.medium_count }}</div>
+    </div>
+  </div>
+
+  <p style="margin-bottom: 24px;">
+    A comprehensive security evaluation was executed against the production architecture of 
+    <strong>{{ exec_summary.project_name or client_name }}</strong>. 
+    The operations successfully validated <strong>{{ exec_summary.total_findings }} unique vulnerabilities</strong>. 
+    The overall computed framework hazard scale has been rated at 
+    <strong>{{ risk_score|default("N/A") }}</strong>.
+  </p>
+
+  <h2>Severity Distribution Matrix</h2>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="width: 150px;">Severity Threat Class</th>
+        <th style="width: 120px; text-align: center;">Verified Counts</th>
+        <th>CVSS Vector Boundaries</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-critical">Critical</span></td>
+        <td style="font-weight: 700; color: #dc2626; text-align: center;">{{ exec_summary.critical_count }}</td>
+        <td><code class="mono">9.0 – 10.0</code></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-high">High</span></td>
+        <td style="font-weight: 700; color: #ea580c; text-align: center;">{{ exec_summary.high_count }}</td>
+        <td><code class="mono">7.0 – 8.9</code></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-medium">Medium</span></td>
+        <td style="font-weight: 700; color: #d97706; text-align: center;">{{ exec_summary.medium_count }}</td>
+        <td><code class="mono">4.0 – 6.9</code></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-low">Low</span></td>
+        <td style="font-weight: 700; color: #16a34a; text-align: center;">{{ exec_summary.low_count }}</td>
+        <td><code class="mono">0.1 – 3.9</code></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-info">Info</span></td>
+        <td style="font-weight: 700; color: #2563eb; text-align: center;">{{ exec_summary.info_count }}</td>
+        <td><code class="mono">Informational Insights</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  {% if exec_summary.ai_summary %}
+  <div style="margin-top: 24px; padding: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #0f172a; border-radius: 6px;">
+    <div style="font-size: 7.5pt; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; margin-bottom: 6px;">Strategic Synthesis Summary</div>
+    <p class="rich-text" style="margin-bottom: 0;">{{ exec_summary.ai_summary }}</p>
+  </div>
+  {% endif %}
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- 2. SCOPE & METHODOLOGY                                        -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="content-layout" id="section-scope">
+  <div class="section-title"><span class="step-num">2</span> Scope &amp; Methodology</div>
+
+  {% if exec_summary.project_name or exec_summary.project_type %}
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="width: 35%;">Assessment Vector Axis</th>
+        <th>Boundary Execution Parameters</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if exec_summary.project_name %}
+      <tr><td style="font-weight: 600;">Target Context Focus</td><td>{{ exec_summary.project_name }}</td></tr>
+      {% endif %}
+      {% if exec_summary.project_type %}
+      <tr><td style="font-weight: 600;">Evaluation Class Matrix</td><td>{{ exec_summary.project_type|replace("_", " ")|title }}</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  {% if exec_summary.project_description %}
+  <h2>Project Description</h2>
+  <div class="rich-text"><p>{{ exec_summary.project_description }}</p></div>
+  {% endif %}
+
+  {% if exec_summary.project_scope %}
+  <h2>Assessment Scope Boundaries</h2>
+  <div class="rich-text"><p>{{ exec_summary.project_scope }}</p></div>
+  {% endif %}
+
+  <h2>Testing Methodology Lifecycle</h2>
+  <p style="margin-bottom: 20px;">
+    Operations deployed combined manual vulnerability code analysis and active runtime test execution loops to securely discover system exploits without interrupting production data frames.
+  </p>
+
+  <div style="display: flex; gap: 10px; margin-bottom: 24px;">
+    {% set steps = ["Reconnaissance", "Threat Modeling", "Vulnerability Scan", "Manual Verification", "Reporting Layout"] %}
+    {% for step in steps %}
+    <div style="flex: 1; text-align: center; padding: 12px 6px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;">
+      <div style="width: 26px; height: 26px; background: #0f172a; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; font-weight: 700; font-size: 8.5pt;">{{ loop.index }}</div>
+      <div style="font-size: 7.5pt; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 0.3px;">{{ step }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <h2>Security Reference Frameworks</h2>
+  <ul style="line-height: 1.8;">
+    <li><strong>OWASP Web Security Testing Guide (WSTG v4.2)</strong> — Standard testing frameworks</li>
+    <li><strong>OWASP Top 10 Core Classification Model</strong> — Risk baseline tracking matrices</li>
+    <li><strong>NIST SP 800-115</strong> — Technical security test guidelines</li>
+    <li><strong>CVSS v4.0 Metric Standardization Rules</strong> — Quantitative risk scoring framework</li>
+    <li><strong>MITRE Common Weakness Enumeration (CWE)</strong> — Threat taxonomy indexing</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- 3. VULNERABILITY OVERVIEW                                      -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="content-layout" id="section-overview">
+  <div class="section-title"><span class="step-num">3</span> Vulnerability Overview</div>
+
+  <p style="margin-bottom: 16px;">
+    Tabular overview of consolidated vulnerabilities, ordered systematically by framework execution threat tier.
+  </p>
+
+  {% set sorted_vulns = vulnerabilities|sort(attribute="cvss_score", reverse=True) %}
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="width: 55px;">Index</th>
+        <th>Vulnerability Target Title Node</th>
+        <th style="width: 100px;">Severity</th>
+        <th style="width: 55px; text-align: center;">CVSS</th>
+        <th style="width: 100px;">CWE ID</th>
+        <th style="width: 95px;">State</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for vuln in sorted_vulns %}
+      {% set sev = vuln.severity|lower %}
+      {% if sev == 'informational' %}{% set sev = 'info' %}{% endif %}
+      <tr>
+        <td style="font-family: 'JetBrains Mono', monospace; font-size: 8pt; color: #64748b;">#{{ loop.index }}</td>
+        <td style="font-weight: 600; color: #0f172a;">{{ vuln.title }}</td>
+        <td><span class="badge badge-{{ sev }}">{{ vuln.severity }}</span></td>
+        <td style="text-align: center; font-weight: 700; color: #0f172a;">{{ "%.1f"|format(vuln.cvss_score|default(0)) }}</td>
+        <td><code class="mono" style="font-size: 7.5pt;">{% if vuln.cwe_id %}{{ vuln.cwe_id }}{% else %}&mdash;{% endif %}</code></td>
+        <td><span class="badge badge-{{ sev }}" style="text-transform: none; font-size: 7pt; padding: 2px 6px;">{{ vuln.status|replace("_", " ") }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- 4. DETAILED FINDINGS (Enforced page breakout logic)            -->
+<!-- ════════════════════════════════════════════════════════════ -->
+{% for vuln in sorted_vulns %}
+{% set sev = vuln.severity|lower %}
+{% if sev == 'informational' %}{% set sev = 'info' %}{% endif %}
+{% set poc_text = vuln.proof_of_concept %}
+{% set poc_images = vuln.poc_images_b64 or [] %}
+{% set poc_steps = [] %}
+{% if poc_text is string and poc_text.startswith("[") %}
+  {% set poc_steps = poc_text|from_json %}
+{% endif %}
+
+<div class="content-layout">
+  <div class="finding-isolation-block">
+    <div class="section-title" style="font-size: 13.5pt; padding-bottom: 6px; margin-bottom: 14px;">
+      <span class="step-num">4.{{ loop.index }}</span>
+      {{ vuln.title }}
+    </div>
+
+    <!-- Accented Severity Tracker -->
+    <div class="vuln-header-bar {{ sev }}">
+      <span class="badge badge-{{ sev }}" style="font-size: 8pt; flex-shrink: 0;">{{ vuln.severity }}</span>
+      <span class="vuln-title-text">{{ vuln.title }}</span>
+      <span class="vuln-id-label">{{ vuln.id[:10] }}</span>
+    </div>
+
+    <!-- Metadata Attributes Matrix -->
+    <div class="vuln-meta-container">
+      <div class="vuln-meta-list">
+        <div class="vuln-meta-item">
+          <span class="meta-label">CVSS Base Metric</span>
+          <span class="meta-value"><strong>{{ "%.1f"|format(vuln.cvss_score|default(0)) }}</strong> / 10.0</span>
+        </div>
+        <div class="vuln-meta-item">
+          <span class="meta-label">Lifecycle Status</span>
+          <span class="meta-value" style="text-transform: capitalize;">{{ vuln.status|replace("_", " ") }}</span>
+        </div>
+        {% if vuln.cvss_vector %}
+        <div class="vuln-meta-item style-full-width" style="flex: 1 1 100%;">
+          <span class="meta-label">CVSS Vector</span>
+          <span class="meta-value mono" style="font-size: 7.5pt; color: #475569;">{{ vuln.cvss_vector }}</span>
+        </div>
+        {% endif %}
+        {% if vuln.cve_id %}
+        <div class="vuln-meta-item">
+          <span class="meta-label">CVE Identifier</span>
+          <span class="meta-value">
+            <a href="https://nvd.nist.gov/vuln/detail/{{ vuln.cve_id }}" target="_blank" style="font-weight: 600;">{{ vuln.cve_id }}</a>
+            {% if vuln.cve_verified %}
+            <span class="cve-verified">VERIFIED</span>
+            {% else %}
+            <span class="cve-unverified">UNVERIFIED</span>
+            {% endif %}
+          </span>
+        </div>
+        {% endif %}
+        {% if vuln.cwe_id %}
+        <div class="vuln-meta-item">
+          <span class="meta-label">MITRE CWE Node</span>
+          <span class="meta-value">
+            <a href="https://cwe.mitre.org/data/definitions/{{ vuln.cwe_id.split('-')[1] if '-' in vuln.cwe_id else '' }}.html" target="_blank" class="mono">{{ vuln.cwe_id }}</a>
+          </span>
+        </div>
+        {% endif %}
+        {% if vuln.affected_component %}
+        <div class="vuln-meta-item">
+          <span class="meta-label">Target Area</span>
+          <span class="meta-value mono" style="font-size: 7.5pt;">{{ vuln.affected_component }}</span>
+        </div>
+        {% endif %}
+        {% if vuln.endpoint_url %}
+        <div class="vuln-meta-item style-full-width" style="flex: 1 1 100%;">
+          <span class="meta-label">Target Endpoint</span>
+          <span class="meta-value mono" style="font-size: 7.5pt; word-break: break-all; color: #b91c1c;">{{ vuln.endpoint_url }}</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Description -->
+    {% if vuln.description %}
+    <div class="vuln-section">
+      <div class="section-label">Technical Exploit Summary</div>
+      <div class="rich-text">{{ vuln.description|safe }}</div>
+    </div>
+    {% endif %}
+
+    <!-- Impact -->
+    {% if vuln.impact %}
+    <div class="vuln-section">
+      <div class="section-label">Architectural Threat Impact</div>
+      <div class="rich-text">{{ vuln.impact|safe }}</div>
+    </div>
+    {% endif %}
+
+    <!-- Remediation -->
+    {% if vuln.remediation %}
+    <div class="vuln-section">
+      <div class="section-label">Remediation Architecture Implementation Blueprint</div>
+      <div class="rich-text">{{ vuln.remediation|safe }}</div>
+    </div>
+    {% endif %}
+
+    <!-- References -->
+    {% if vuln.reference_links %}
+    <div class="vuln-section">
+      <div class="section-label">Reference Materials Index</div>
+      <ul style="font-size: 8pt; word-break: break-all; line-height: 1.7;">
+        {% for link in vuln.reference_links %}
+        <li><a href="{{ link }}" target="_blank">{{ link }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <!-- Proof of Concept Base Container -->
+    {% if poc_text or poc_images %}
+      <div class="vuln-section">
+        <div class="section-label">Exploit Proof of Concept (PoC) Evidence</div>
+
+        {% if poc_text and not poc_text.startswith("[") %}
+          <div class="rich-text">{{ poc_text|safe }}</div>
+          {% if poc_images|length > 0 and poc_images[0] %}
+          <div class="poc-image-container">
+            <img src="data:image/png;base64,{{ poc_images[0] }}" alt="Exploit Evidence Log Base">
+            <div class="poc-caption">Primary Threat Evidence Footprint — Initial Run</div>
+          </div>
+          {% endif %}
+
+        {% elif poc_steps|length > 0 %}
+          <div class="poc-step">
+            <span class="poc-step-title"><span class="step-num">Step 1:</span> {{ poc_steps[0].text or poc_steps[0].step }}</span>
+          </div>
+          {% if poc_steps[0].code %}
+          <div class="code-block">{{ poc_steps[0].code }}</div>
+          {% endif %}
+
+          {% if poc_images|length > 0 and poc_images[0] %}
+          <div class="poc-image-container">
+            <img src="data:image/png;base64,{{ poc_images[0] }}" alt="Exploit Phase Graphic">
+            <div class="poc-caption">Runtime Attack Evidence Output — Step 1</div>
+          </div>
+          {% endif %}
+        {% else %}
+          {% if poc_images|length > 0 and poc_images[0] %}
+          <div class="poc-image-container">
+            <img src="data:image/png;base64,{{ poc_images[0] }}" alt="Exploit Artifact">
+            <div class="poc-caption">Validated Exploit Capture Log</div>
+          </div>
+          {% endif %}
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Extra Step loops cleanly handling image continuation page splits -->
+{% if (poc_steps|length > 1) or (poc_images|length > 1) %}
+  {% set num_steps = poc_steps|length %}
+  {% set num_images = poc_images|length %}
+  {% set max_idx = num_steps if num_steps >= num_images else num_images %}
+  {% set vuln_index = loop.index %}
+
+  {% for i in range(1, max_idx) %}
+  <div class="content-layout">
+    <div style="font-size: 9.5pt; font-weight: 600; color: #64748b; margin-bottom: 16px; padding-bottom: 6px; border-bottom: 1px solid #e2e8f0;">
+      Finding 4.{{ vuln_index }} (PoC Continued Execution) &mdash; Detailed Diagnostic Evidence
+    </div>
+
+    {% if i < num_steps %}
+    <div class="poc-step" style="margin-top: 14px;">
+      <span class="poc-step-title"><span class="step-num">Step {{ i + 1 }}:</span> {{ poc_steps[i].text or poc_steps[i].step }}</span>
+    </div>
+    {% if poc_steps[i].code %}
+    <div class="code-block">{{ poc_steps[i].code }}</div>
+    {% endif %}
+    {% endif %}
+
+    {% if i < num_images and poc_images[i] %}
+    <div class="poc-image-container">
+      <img src="data:image/png;base64,{{ poc_images[i] }}" alt="Exploit Pipeline Step">
+      <div class="poc-caption">
+        {%- if i < num_steps %}Runtime Attack Evidence Output — Step {{ i + 1 }}{% else %}Supplementary System State Validation Trace {{ i + 1 }}{% endif -%}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+{% endif %}
+
+{% endfor %}
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- APPENDIX A — SEVERITY RATINGS                                  -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="content-layout">
+  <div class="section-title"><span class="step-num">A</span> Appendix A — Severity Ratings</div>
+
+  <p style="margin-bottom: 16px;">
+    Vulnerability metric metrics conform to specifications governed under the CVSS v4.0 framework standardization models.
+  </p>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="width: 110px;">Severity Index</th>
+        <th style="width: 110px;">CVSS Bounds</th>
+        <th>Engineering Hazard Architectural Definition Guidelines</th>
+        <th style="width: 60px; text-align: center;">Color</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-critical">Critical</span></td>
+        <td><strong>9.0 – 10.0</strong></td>
+        <td>Flaws exposing zero dependency access vectors. Exploitation yields unauthenticated root level data orchestration control and system takeovers.</td>
+        <td style="text-align: center;"><span class="color-swatch" style="background: #dc2626;"></span></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-high">High</span></td>
+        <td><strong>7.0 – 8.9</strong></td>
+        <td>Vulnerabilities enabling privilege access manipulation patterns, mass database scraping, or core pipeline data loss triggers.</td>
+        <td style="text-align: center;"><span class="color-swatch" style="background: #ea580c;"></span></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-medium">Medium</span></td>
+        <td><strong>4.0 – 6.9</strong></td>
+        <td>Exploitation signatures involve restricted configurations, local boundary authorization contexts, or active target user social manipulation hooks.</td>
+        <td style="text-align: center;"><span class="color-swatch" style="background: #d97706;"></span></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-low">Low</span></td>
+        <td><strong>0.1 – 3.9</strong></td>
+        <td>Configuration exposure issues that trigger minor platform service footprints without exposing system manipulation endpoints.</td>
+        <td style="text-align: center;"><span class="color-swatch" style="background: #16a34a;"></span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- APPENDIX B — STATUS DEFINITIONS                                -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="content-layout">
+  <div class="section-title"><span class="step-num">B</span> Appendix B — Status Definitions</div>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="width: 140px;">Lifecycle State</th>
+        <th>Technical State Metric Boundaries</th>
+        <th style="width: 180px;">Engineering Action Pipeline</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Open</strong></td><td>Confirmed operational risk exploit vector. Mitigation patch engine absent.</td><td>Prioritize for developmental patch sprint</td></tr>
+      <tr><td><strong>In Review</strong></td><td>Remediation patch integration claims completed. Verification operations scheduled.</td><td>Run manual exploit regression regression tests</td></tr>
+      <tr><td><strong>Resolved</strong></td><td>Flaw validated closed via post-fix validation diagnostic processing cycles.</td><td>Archive tracking node metrics</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- APPENDIX C — STANDARDS MAPPING                                 -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="content-layout">
+  <div class="section-title"><span class="step-num">C</span> Appendix C — Standards Mapping</div>
+
+  <table class="data-table" style="font-size: 8.5pt;">
+    <thead>
+      <tr>
+        <th style="width: 90px;">CWE Node</th>
+        <th>Weakness Taxonomy Nomenclature</th>
+        <th style="width: 110px;">OWASP Vector</th>
+        <th style="width: 90px;">SANS Rank</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><code class="mono">CWE-79</code></td><td>Cross-Site Scripting (XSS) Injection patterns</td><td>A03:2021</td><td>SANS Top 2</td></tr>
+      <tr><td><code class="mono">CWE-89</code></td><td>SQL Injection structure parameters</td><td>A03:2021</td><td>SANS Top 1</td></tr>
+      <tr><td><code class="mono">CWE-200</code></td><td>Unauthorized System Data Leak Exposure profiles</td><td>A01:2021</td><td>SANS Top 10</td></tr>
+      <tr><td><code class="mono">CWE-287</code></td><td>Improper Authentication Handling Parameters</td><td>A07:2021</td><td>SANS Top 11</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- END PAGE (Completely distinct page context scope)              -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="end-layout">
+  <div class="end-icon">&#9673;</div>
+  <div class="cover-title" style="font-size: 24pt; margin-bottom: 6px;">End of Report</div>
+  <p style="font-size: 11pt; color: #94a3b8; margin-bottom: 24px;">Post-Exploitation Posture Analytics &amp; Risk Deficit Architecture Log</p>
+  
+  <div class="end-divider"></div>
+  
+  <p style="font-size: 9.5pt; font-weight: 600; color: #ffffff; margin-bottom: 4px;">{{ client_name }}</p>
+  <p style="font-size: 8.5pt; color: #64748b; margin-bottom: 40px;">Verification Signature: VAPT-{{ report_date|replace("-", "") }}</p>
+  
+  <p style="font-size: 8pt; color: #475569; max-width: 440px; margin: 0 auto; line-height: 1.6;">
+    Distribution of this asset verification catalog material is restricted exclusively to validated project stakeholders.
+  </p>
+</div>
+
+</body>
+</html>

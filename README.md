@@ -117,6 +117,7 @@ iwr -Uri https://raw.githubusercontent.com/Harshakar-official/llm-connector/main
 | `tls_insecure` | `LLM_CONNECTOR_TLS_INSECURE` | `false` | Skip TLS verification (testing only) |
 | `ca_cert_path` | — | `""` | Path to custom CA certificate for the cloud platform |
 | `max_response_size` | `LLM_CONNECTOR_MAX_RESPONSE_SIZE` | `0` | Max bytes from LLM response (0 = unlimited) |
+| `scan_ports` | `LLM_CONNECTOR_SCAN_PORTS` | `11434,8080,8000,5000,3000` | Comma-separated ports/ranges to scan for LLM (e.g. `3000-3010,11434`) |
 | `data_dir` | — | `/opt/llm-connector/data` | Directory for persistent data (connector ID) |
 
 ## How to test

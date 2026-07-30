@@ -1,0 +1,130 @@
+VAPTShield CI/CD Tool — Full Audit Report
+1. SECURITY GAPS
+S1. Webhook Replay Protection — Fail Open (CRITICAL)
+File: app/api/cicd/webhook/route.ts:79-81
+// Fail open if DB error — attacker can replay webhooks during DB outage
+if (err) { /* proceed */ }
+Comment says "fail open" — for a security scanner, this should fail closed. During a DB hiccup, any replayed webhook will execute.
+S2. Webhook Replay Table — No TTL/Cleanup (MEDIUM)
+File: supabase/migrations/077_webhook_replay_protection.sql:11-12
+The processed_webhooks table has no scheduled cleanup. Comment says "Optional, can be done via cron" but no cron exists. Table grows unbounded.
+S3. Webhook IP Rate Limit — Spoofable (LOW)
+File: webhook/route.ts:36
+x-forwarded-for is used for rate limiting. Behind Vercel this is safe, but if proxied differently, attackers can rotate IPs to bypass the 20 req/min limit.
+S4. process.env.JWT_SECRET Fallback to Empty String (HIGH)
+File: lib/docker/manager.ts:49
+const JWT_SECRET = process.env.JWT_SECRET || ""
+If JWT_SECRET is not set, worker auth falls through to getWorkerKey() (static key) or fails. No startup validation ensures this env var exists. An empty secret produces predictable JWTs.
+S5. System JWT Bypasses Org Scoping (MEDIUM)
+File: lib/docker/manager.ts:91
+authToken = await signWorkerToken("system", "", "super_admin", "")
+Internal calls (no user context) sign a super_admin system JWT. If a worker endpoint trusts this token without verifying the caller, it could be abused. Relies entirely on worker-side validation.
+S6. crypto.timingSafeEqual Length Mismatch (LOW)
+File: webhook/route.ts:118-121
+Buffer.from(expectedSig) vs Buffer.from(signature) — if signature has unexpected encoding/length, timingSafeEqual throws. The error is unhandled at this level (caught by outer try-catch but returns 500, not 401).
+S7. PDF Route — No Findings Count Limit (MEDIUM)
+File: api/scan/cicd/[id]/pdf/route.ts:31-36
+const { data: findings } = await supabase.from("scan_findings").select("*")...
+No LIMIT. A scan with 10K+ findings will load everything into memory and try to render each into the PDF. DoS vector.
+S8. SSE Stream — No Org-Level Connection Limit (MEDIUM)
+File: api/scan/cicd/[id]/stream/route.ts
+Each SSE connection polls DB every 1.5s. No limit on concurrent connections per org. 50 simultaneous watchers = 50 DB queries every 1.5s.
+S9. PAT Transmitted in PUT Body (LOW)
+File: api/cicd/config/route.ts:162
+The pat is passed in the POST/PUT JSON body. While encrypted at rest, it's in transit over HTTPS. The detectRepo function in useCicdScan.ts:369 calls GitHub API client-side — exposes the repo's public/private status but doesn't leak the PAT.
+S10. Webhook Secret Exposed in POST Response (MEDIUM)
+File: api/cicd/config/route.ts:210
+return NextResponse.json({ config: newConfig })
+The webhook_secret is returned in the API response when creating/updating a config. This is by design (user needs it for GitHub setup), but should be logged/audited. No audit trail for who viewed the secret.
+2. LOGICAL GAPS
+L1. Quota Check Race Condition in Scan Trigger (HIGH)
+File: api/cicd/config/route.ts:341-353
+const quotaOk = await checkCiScanQuota(orgId)  // Step 1: increment counter
+// ... gap ...
+const cicdSession = await spawnCicdSession(...) // Step 2: acquire slot
+checkCiScanQuota increments ci_scans_today atomically. But if spawnCicdSession fails, the scan count is not decremented. User loses a scan from their quota without scanning. The scan-all route has the same issue at route.ts:74.
+L2. No Duplicate Scan Prevention (MEDIUM)
+File: api/cicd/config/route.ts:348
+No check for an existing running scan on the same config. User can click "Scan" rapidly and spawn multiple Docker containers for the same repo. Only the rate limiter (5/min) provides partial protection.
+L3. processed_webhooks Has No org_id Column (LOW)
+File: migrations/077_webhook_replay_protection.sql
+Replay protection is global — if two different orgs configure the same repo (fork), a webhook delivery for one org's scan could prevent the other org from scanning it. The dedup is per delivery_id, not per org.
+L4. Cancel Route — No Permission Granularity (LOW)
+File: api/cicd/cancel/route.ts:39-41
+Only checks admin || security_engineer. A viewer who knows a scanId (e.g., from URL) can't cancel, but there's no check that the user started the scan. Any admin can cancel any scan in the org.
+L5. Scan-All SSE — Only Shows First Scan (UI)
+File: hooks/useCicdScan.ts:350-353
+const first = data.results?.find((r: any) => r.scanId)
+if (first) connectSse(first.scanId)
+Only connects SSE to the first successful scan. All other scan progress is invisible to the user.
+L6. Branch Not Extracted from Webhook for push to Non-Main (LOW)
+File: webhook/route.ts:174-179
+Branch is extracted correctly from payload.ref, but there's no filtering — every push to any branch triggers a scan. No config option to restrict to specific branches.
+L7. config.branch || "default" Fallback (LOW)
+File: api/cicd/config/route.ts:381
+When no branch is specified, it falls back to literal string "default". Git doesn't have a branch called "default" — the scan will clone HEAD (usually main), but the scan_history record will show branch_name = "default", which is misleading.
+3. FUNCTIONAL GAPS
+F1. No Webhook Secret Rotation (HIGH)
+No API endpoint or UI to rotate webhook_secret. If compromised, user must delete and re-add the config, losing scan history association.
+F2. No Scan Comparison Between Runs (MEDIUM)
+No feature to compare findings between two scans of the same repo (regression detection). Users must manually diff PDF reports.
+F3. No Scan Retry Mechanism (LOW)
+Failed scans show an error but no "Retry" button in the backend API (frontend FindingsPanel has a onRetry prop but it's a full re-scan, not a retry of the same failed container).
+F4. No PAT Expiry Warning (LOW)
+If a PAT expires mid-scan, the clone fails. No proactive check when saving the config to validate the PAT works.
+F5. fixOrgStaleRunningScans Only Called for ZAP (LOW)
+File: lib/docker/manager.ts:226
+fixOrgStaleRunningScans(orgId) is called before ZAP spawns but not before CI/CD spawns. Stale CI/CD scans are only cleaned by the global cleanupOrphanedContainers.
+F6. No Webhook Delivery Logging (LOW)
+When a webhook triggers a scan, there's no audit log of the delivery (delivery_id is stored in processed_webhooks but not linked to the scan or config). Can't trace which webhook caused which scan.
+4. UI/UX MISMATCHES
+U1. Repo Detection Only Supports GitHub
+File: hooks/useCicdScan.ts:363-364
+const match = repoUrl.trim().match(/^https:\/\/github\.com\/...$/)
+Backend supports GitHub/GitLab/Bitbucket. Frontend detection only works for GitHub. GitLab/Bitbucket repos always show "Invalid GitHub URL format".
+U2. No Docker Slot Usage Display
+Quota badge shows CI/CD scan quota (3/day) but not active Docker container slots. Users don't know if slots are available before clicking Scan.
+U3. Cancelled vs Failed — Same Visual Treatment
+File: PipelineStageBadge.tsx / UI
+Cancelled scans and failed scans both show red/error states. No distinct "Cancelled" indicator (yellow/neutral).
+U4. scanAll — No Per-Repo Progress Indicator
+When scanning all repos, only the first scan's SSE is connected. No visual indication of which repos succeeded/failed/skipped in batch mode (only shown in the toast response).
+U5. No Loading Skeleton for Scan-All Button
+The "Scan All" button has a scanAllBusy state but the visual feedback is minimal — just button disabled state. No progress counter like "Scanning 2/5 repos...".
+U6. Webhook URL Displayed Without Copy Button Context
+File: page.tsx:129-133
+Webhook URL is computed but the UX for setting it up in GitHub could be clearer (step-by-step guide).
+5. DATABASE/SCHEMA GAPS
+D1. processed_webhooks — No Auto-Cleanup (MEDIUM)
+No pg_cron or TTL mechanism. Table grows with every webhook delivery. Should have a daily cleanup job for records > 7 days.
+D2. scan_history — No TTL for CI/CD Records (LOW)
+Old CI/CD scan records accumulate forever. Should have configurable retention per plan.
+D3. cicd_configs.last_scan_status — No Index (LOW)
+The last_scan_status column is queried in reconciliation logic (GET /api/cicd/config) but has no index. Full table scan on large configs.
+D4. cicd_configs UNIQUE Constraint Doesn't Cover Branch (LOW)
+UNIQUE(org_id, project_id, repo_url) — same repo with different branches can't be configured separately.
+PRIORITY MATRIX
+Priority	ID	Gap
+CRITICAL	S1	Webhook replay fail-open during DB outage
+HIGH	L1	Quota race condition (scan count not rolled back on failure)
+HIGH	S4	JWT_SECRET empty fallback
+HIGH	F1	No webhook secret rotation
+MEDIUM	S2	No webhook replay table cleanup
+MEDIUM	S5	System JWT super_admin bypass
+MEDIUM	S7	PDF no findings limit
+MEDIUM	S8	SSE no connection limit
+MEDIUM	S10	Webhook secret in API response without audit
+MEDIUM	L2	No duplicate scan prevention
+MEDIUM	F2	No scan comparison
+MEDIUM	D1	No webhook table TTL
+LOW	S3	IP rate limit spoofable
+LOW	S6	timingSafeEqual length mismatch
+LOW	S9	PAT in transit (acceptable over HTTPS)
+LOW	L3	Webhook dedup not per-org
+LOW	L4	Cancel no granular permission
+LOW	L6	No branch filtering on webhook
+LOW	L7	"default" branch name misleading
+LOW	F3-F6	Various functional gaps
+LOW	U1-U6	UI/UX mismatches
+LOW	D2-D4	Schema gaps
+Total findings: 30 (1 Critical, 3 High, 8 Medium, 18 Low)

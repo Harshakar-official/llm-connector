@@ -67,8 +67,6 @@ sudo chmod 755 "$BIN_PATH"
 # --- write config ---
 echo "==> Writing config..."
 sudo tee "$CONFIG_PATH" > /dev/null <<CONFIG
-CONFIG
-sudo chmod 600 "$CONFIG_PATH"
 {
     "api_key": "$API_KEY",
     "server_url": "$SERVER_URL",
@@ -76,9 +74,11 @@ sudo chmod 600 "$CONFIG_PATH"
     "heartbeat_interval": 30,
     "reconnect_delay": 5,
     "health_port": 9199,
+    "scan_ports": "11434,8080,8000,5000,3000",
     "data_dir": "$INSTALL_DIR/data"
 }
 CONFIG
+sudo chmod 600 "$CONFIG_PATH"
 
 # --- install service ---
 if [[ "$OS" == "linux" ]]; then

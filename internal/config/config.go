@@ -8,6 +8,8 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+
+	"github.com/llmconnector/connector/internal/utils"
 )
 
 // Config holds all configuration for the connector.
@@ -24,6 +26,7 @@ type Config struct {
 	TLSInsecure       bool   `json:"tls_insecure"`
 	CACertPath        string `json:"ca_cert_path"`
 	MaxResponseSize   int    `json:"max_response_size"`
+	ScanPorts         string `json:"scan_ports"`
 }
 
 // Default returns a Config populated with sensible defaults.
@@ -83,6 +86,9 @@ func Load(path string) (*Config, error) {
 			cfg.MaxResponseSize = n
 		}
 	}
+	if v := os.Getenv("LLM_CONNECTOR_SCAN_PORTS"); v != "" {
+		cfg.ScanPorts = v
+	}
 
 	return cfg, nil
 }
@@ -133,6 +139,12 @@ func (cfg *Config) Validate() []error {
 	if cfg.CACertPath != "" {
 		if _, err := os.Stat(cfg.CACertPath); err != nil {
 			errs = append(errs, fmt.Errorf("ca_cert_path: %w", err))
+		}
+	}
+
+	if cfg.ScanPorts != "" {
+		if _, err := utils.ParsePorts(cfg.ScanPorts); err != nil {
+			errs = append(errs, fmt.Errorf("scan_ports: %w", err))
 		}
 	}
 

@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+  ai-security-scanner:
+    build: .
+    container_name: vaptshield-ai-security
+    ports:
+      - "8090:8090"
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - vaptshield_network
+
+networks:
+  vaptshield_network:
+    external: true

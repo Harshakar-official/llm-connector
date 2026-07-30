@@ -178,7 +178,7 @@ func (c *Connector) register(ctx context.Context) error {
 }
 
 func (c *Connector) initLLM() {
-	baseURL, llmType := DiscoverLLM(nil, c.cfg.OllamaURL)
+	baseURL, llmType := DiscoverLLM(nil, c.cfg.OllamaURL, c.cfg.ScanPorts)
 	c.llmType = llmType
 
 	switch llmType {

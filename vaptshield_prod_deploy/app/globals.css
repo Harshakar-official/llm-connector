@@ -1,0 +1,231 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ═══════════════════════════════════════════════════════════════
+   VAPTShield — Unified Enterprise Design System
+   Light + Dark mode tokens (Stripe/Vercel/Linear inspired)
+   ═══════════════════════════════════════════════════════════════ */
+
+@layer base {
+  :root {
+    /* ─── Surface ─────────────────────────────────────────── */
+    --bg: 0 0% 100%;
+    --bg-subtle: 0 0% 98%;
+    --bg-muted: 0 0% 96%;
+    --panel: 0 0% 100%;
+    --panel-hover: 0 0% 98%;
+
+    /* ─── Borders ─────────────────────────────────────────── */
+    --border: 0 0% 90%;
+    --border-strong: 0 0% 83%;
+    --border-focus: 217 91% 60%;
+
+    /* ─── Text ────────────────────────────────────────────── */
+    --fg: 0 0% 4%;
+    --fg-muted: 0 0% 32%;
+    --fg-subtle: 0 0% 45%;
+    --fg-disabled: 0 0% 64%;
+
+    /* ─── Brand (single accent) ───────────────────────────── */
+    --primary: 217 91% 60%;
+    --primary-hover: 224 76% 48%;
+    --primary-fg: 0 0% 100%;
+    --primary-subtle: 214 100% 97%;
+
+    /* ─── Severity (functional colors) ────────────────────── */
+    --critical: 0 73% 46%;
+    --critical-bg: 0 86% 97%;
+    --critical-border: 0 96% 89%;
+    --high: 25 95% 49%;
+    --high-bg: 33 100% 96%;
+    --high-border: 32 98% 83%;
+    --medium: 43 96% 32%;
+    --medium-bg: 55 92% 95%;
+    --medium-border: 48 97% 77%;
+    --low: 217 91% 60%;
+    --low-bg: 214 100% 97%;
+    --low-border: 213 97% 87%;
+    --info: 220 9% 46%;
+    --info-bg: 220 14% 96%;
+    --info-border: 220 13% 91%;
+
+    /* ─── Status ──────────────────────────────────────────── */
+    --success: 142 71% 45%;
+    --success-bg: 138 76% 97%;
+    --warning: 32 95% 44%;
+    --warning-bg: 48 100% 96%;
+    --danger: 0 73% 46%;
+    --danger-bg: 0 86% 97%;
+
+    /* ─── Chart palette (qualitative, colorblind-safe) ────── */
+    --chart-1: 217 91% 60%;
+    --chart-2: 142 71% 45%;
+    --chart-3: 350 75% 42%;
+    --chart-4: 271 81% 56%;
+    --chart-5: 192 91% 36%;
+    --chart-6: 322 84% 50%;
+
+    /* ─── Shadcn compatibility (minimal mapping) ──────────── */
+    --background: var(--bg);
+    --foreground: var(--fg);
+    --card: var(--panel);
+    --card-foreground: var(--fg);
+    --popover: var(--panel);
+    --popover-foreground: var(--fg);
+    --primary-foreground: var(--primary-fg);
+    --secondary: var(--bg-muted);
+    --secondary-foreground: var(--fg);
+    --muted: var(--bg-muted);
+    --muted-foreground: var(--fg-muted);
+    --accent: var(--bg-muted);
+    --accent-foreground: var(--fg);
+    --destructive: var(--danger);
+    --destructive-foreground: 0 0% 100%;
+    --input: var(--border);
+    --ring: var(--border-focus);
+
+    /* ─── Radius ──────────────────────────────────────────── */
+    --radius-sm: 0.25rem;
+    --radius: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+  }
+
+  .dark {
+    /* ─── Surface ─────────────────────────────────────────── */
+    --bg: 0 0% 4%;
+    --bg-subtle: 0 0% 7%;
+    --bg-muted: 0 0% 9%;
+    --panel: 0 0% 7%;
+    --panel-hover: 0 0% 9%;
+
+    /* ─── Borders ─────────────────────────────────────────── */
+    --border: 0 0% 15%;
+    --border-strong: 0 0% 20%;
+    --border-focus: 217 91% 60%;
+
+    /* ─── Text ────────────────────────────────────────────── */
+    --fg: 0 0% 98%;
+    --fg-muted: 0 0% 64%;
+    --fg-subtle: 0 0% 45%;
+    --fg-disabled: 0 0% 32%;
+
+    /* ─── Brand ───────────────────────────────────────────── */
+    --primary: 217 91% 60%;
+    --primary-hover: 213 94% 68%;
+    --primary-fg: 0 0% 100%;
+    --primary-subtle: 224 64% 33% / 0.2;
+
+    /* ─── Severity ────────────────────────────────────────── */
+    --critical: 0 84% 60%;
+    --critical-bg: 0 75% 15% / 0.2;
+    --critical-border: 0 73% 31%;
+    --high: 25 95% 53%;
+    --high-bg: 21 90% 17% / 0.2;
+    --high-border: 21 88% 33%;
+    --medium: 48 96% 53%;
+    --medium-bg: 28 73% 26% / 0.2;
+    --medium-border: 28 73% 33%;
+    --low: 217 91% 60%;
+    --low-bg: 224 64% 33% / 0.2;
+    --low-border: 226 71% 40%;
+    --info: 220 9% 60%;
+    --info-bg: 220 13% 18% / 0.2;
+    --info-border: 220 13% 26%;
+
+    /* ─── Status ──────────────────────────────────────────── */
+    --success: 142 76% 56%;
+    --success-bg: 145 80% 16% / 0.2;
+    --warning: 38 92% 50%;
+    --warning-bg: 28 73% 26% / 0.2;
+    --danger: 0 84% 60%;
+    --danger-bg: 0 75% 15% / 0.2;
+
+    /* ─── Chart (slightly brighter for dark bg) ───────────── */
+    --chart-1: 213 94% 68%;
+    --chart-2: 142 76% 56%;
+    --chart-3: 0 84% 60%;
+    --chart-4: 270 95% 75%;
+    --chart-5: 188 94% 55%;
+    --chart-6: 326 78% 64%;
+
+    /* ─── Shadcn dark mappings ────────────────────────────── */
+    --background: var(--bg);
+    --foreground: var(--fg);
+    --card: var(--panel);
+    --card-foreground: var(--fg);
+    --popover: var(--panel);
+    --popover-foreground: var(--fg);
+    --primary-foreground: var(--primary-fg);
+    --secondary: var(--bg-muted);
+    --secondary-foreground: var(--fg);
+    --muted: var(--bg-muted);
+    --muted-foreground: var(--fg-muted);
+    --accent: var(--bg-muted);
+    --accent-foreground: var(--fg);
+    --destructive: var(--danger);
+    --destructive-foreground: 0 0% 100%;
+    --input: var(--border);
+    --ring: var(--border-focus);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-bg text-fg;
+    font-family: var(--font-sans);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  code,
+  pre,
+  kbd,
+  samp,
+  .font-mono {
+    font-family: var(--font-mono);
+  }
+
+  /* Tabular numbers for data displays */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 3px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--border-strong));
+  }
+  .custom-scrollbar::-webkit-scrollbar {
+    height: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+}

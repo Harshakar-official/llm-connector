@@ -47,6 +47,7 @@ $Config = @"
     "heartbeat_interval": 30,
     "reconnect_delay": 5,
     "health_port": 9199,
+    "scan_ports": "11434,8080,8000,5000,3000",
     "data_dir": "$InstallDir\data"
 }
 "@

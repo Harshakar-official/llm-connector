@@ -1,0 +1,44 @@
+import { Skeleton } from "@/components/ui/skeleton"
+
+export default function ProjectFindingsLoading() {
+  return (
+    <div className="p-6 max-w-[1440px] mx-auto space-y-6">
+      <div className="flex items-center gap-2">
+        <Skeleton className="h-4 w-16" />
+        <Skeleton className="h-4 w-4" />
+        <Skeleton className="h-4 w-32" />
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="h-7 w-48" />
+        <Skeleton className="h-4 w-64" />
+      </div>
+      <div className="flex flex-wrap items-center gap-3">
+        <Skeleton className="h-9 w-64 rounded-md" />
+        <Skeleton className="h-9 w-[150px] rounded-md" />
+        <Skeleton className="h-9 w-[180px] rounded-md" />
+      </div>
+      <div className="bg-panel border border-border rounded-md overflow-hidden">
+        <div className="border-b border-border bg-bg-subtle/50 px-4 py-3">
+          <div className="flex gap-8">
+            <Skeleton className="h-4 w-8" />
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-4 w-16" />
+          </div>
+        </div>
+        <div className="divide-y divide-border/50">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <div key={i} className="px-4 py-3 flex items-center gap-8 animate-pulse">
+              <Skeleton className="h-4 w-4" />
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-5 w-16 rounded-full" />
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-16" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}

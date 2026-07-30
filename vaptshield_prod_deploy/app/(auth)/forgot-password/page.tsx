@@ -1,0 +1,7 @@
+import ForgotPasswordPageContent from "./ForgotPasswordClient"
+
+export const dynamic = "force-dynamic"
+
+export default function ForgotPasswordPage() {
+  return <ForgotPasswordPageContent />
+}

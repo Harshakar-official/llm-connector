@@ -1,0 +1,90 @@
+Project Blueprint: phantom_vapt Autonomous Red Teaming AI
+Executive Summary
+
+The goal is to evolve the existing phantom_vapt platform from a static vulnerability scanner into a 24/7 Autonomous AI Red Teaming Agent. Designed for high-stakes enterprise clients (like Government Banks), this platform will not just find open doors, but autonomously reason, plan attack paths, and safely validate vulnerabilities with zero false positives.
+1. Core Architecture: The Multi-Agent Swarm
+
+A single AI model cannot handle scanning, reasoning, and exploiting simultaneously due to context window limits and hallucination risks. The system uses a LangGraph-based Multi-Agent Swarm.
+
+    Planner Agent (The Brain): Uses heavy models (e.g., GPT-4o, Claude 3.5). It reads the target data, formulates an attack strategy, and delegates tasks.
+
+    Recon Agent (The Eyes): Uses smaller, cost-effective local models (Llama-3, Mistral). It operates tools like Nmap and Subfinder, parses the raw output, and updates the shared state.
+
+    Specialized Exploit Agents (The Hands): Narrowly focused agents (e.g., SQLi Agent, XSS Agent). Like Nuclei templates, these agents only activate for their specific domain, ensuring deep, focused exploitation.
+
+    State Graph (Memory Sync): Agents communicate by reading and updating a shared JSON State file (Baton passing). This ensures no duplicate work and perfect data synchronization.
+
+2. Enterprise Data Privacy & Integrations
+
+Government and financial clients will not allow their network data to be sent to public AI APIs.
+
+    BYOK (Bring Your Own Key): Integrated via LiteLLM Proxy. Clients input their own Azure OpenAI/Anthropic API keys. The AI reasoning runs on their dime, and their data stays within their enterprise agreement.
+
+    On-Premise RAG (Retrieval-Augmented Generation): The AI’s "Long-Term Memory." A local Vector Database (e.g., Qdrant) deployed strictly inside the client's VPC. It stores past scans, network topology, and company security policies so the AI remembers past contexts without exposing data.
+
+3. The "24/7 Continuous" Reality (CTEM)
+
+Running AI in an endless loop is extremely costly and causes network congestion. The system follows Continuous Threat Exposure Management (CTEM) via an Event-Driven Workflow:
+
+    Baseline Scan: Initial deep scan maps the entire network and stores it in RAG.
+
+    Sleep Mode: The AI goes dormant to save API costs.
+
+    Smart Triggers (Wake Up):
+
+        Delta Triggers: A cheap cron-job detects a new open port.
+
+        CI/CD Triggers: Developers push new code to production.
+
+        Threat Intel Triggers: A new Zero-Day (e.g., Log4j) hits the market.
+
+    Targeted Action: AI wakes up, tests only the new change or vulnerability, updates the report, and goes back to sleep.
+
+4. Execution Boundaries & Safety (Production vs. Staging)
+
+Client assumption: "Only scan staging, never production." Reality: Staging and Production always have configuration drift. To provide real security, the AI must touch Production safely.
+
+    Staging Environment: Aggressive Mode. AI is allowed to fuzz heavily, test destructive payloads, and brute-force without limits.
+
+    Production Environment: Surgical / Safe Exploitation Mode. AI uses purely non-destructive payloads (e.g., SLEEP(5), SELECT @@version, or whoami). It acts to prove the vulnerability (Proof-Based Scanning) without dropping tables or altering data.
+
+    The Guardrail System (Addressing Model Drift):
+
+        Phase 1 (Pilot): Human-in-the-Loop (HITL). AI pauses and asks for 'Y/N' permission before firing any exploit.
+
+        Phase 2 (Autonomous): Deterministic Auto-Approval. Python scripts automatically approve known safe payloads and hard-block destructive keywords (e.g., DROP).
+
+5. Commercial Strategy (PTaaS Pricing Tiers)
+
+The platform will be sold under a "Pentest as a Service" model, giving clients flexibility in cost and autonomy.
+
+    Tier 1 (Base): Standard automated scanning parsed by AI. (Low cost).
+
+    Tier 2 (Hybrid Shield - Best Seller): AI handles 60% of the workload (technical bugs, auth bypasses). Human pentesters handle the remaining 40% (complex business logic flaws).
+
+    Tier 3 (The Sentinel): Pure event-driven AI workflow for dynamic tech environments.
+
+    Tier 4 (Enterprise): Full 24/7 autonomy, BYOK enabled, custom on-prem RAG, tailored for Govt Banks and FinTech.
+
+6. Immediate Action Plan: The "Showstopper" Pilot (PoC)
+
+To secure budget and internal buy-in from the Boss, we will build a highly focused, visual Proof of Concept (PoC) rather than a shallow, generic scanner.
+
+    The Target: A dummy vulnerable web app (e.g., OWASP Juice Shop or custom Flask app).
+
+    The Exploit: Authentication Bypass via SQL Injection.
+
+    The Demo Flow: 1. AI autonomously spiders the site and finds the /login page.
+    2. Terminal prints the AI's "Inner Monologue" (Reasoning).
+    3. AI proposes an SQLi payload and triggers the HITL Gateway (Type Y to Allow).
+    4. Upon approval, AI bypasses login and prints the Admin Session Token as proof.
+
+Development Roadmap for PoC (Antigravity IDE)
+
+    Phase 1: Foundation: Virtual Env, LangGraph setup, LiteLLM Proxy, and State JSON definition.
+
+    Phase 2: Tooling & Guardrails: Web request tools and HITL terminal prompt logic.
+
+    Phase 3: AI Brains: Prompt engineering for the Planner Agent and the specialized SQLi Agent.
+
+    Phase 4: Execution: Building the dummy vulnerable server and running the live AI loop.

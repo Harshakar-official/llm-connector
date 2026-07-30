@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(sshpass -p 'ubuntu@#123@123' ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 harsh@10.0.4.175 'echo CONNECTED && hostname && whoami')",
+      "Bash(sshpass *)",
+      "Bash(npx tsc *)",
+      "Read(//Users/dev/**)",
+      "Bash(git -C /Users/dev/workspace-a6b4e237 status --short)",
+      "Bash(git -C /Users/dev/workspace-a6b4e237 log --oneline -5)",
+      "Bash(grep *)"
+    ]
+  }
+}

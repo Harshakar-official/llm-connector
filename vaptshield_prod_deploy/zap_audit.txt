@@ -1,0 +1,90 @@
+ZAP Proxy Tool — Full Audit Report
+Architecture (jo maine map kiya)
+Frontend (scanner/zap/page.tsx)
+→ API routes (/api/scan/zap/*)  [Vercel serverless]
+→ lib/docker/manager.ts → callWorker()
+→ Cloudflare tunnel → 2nd laptop Gateway (8080) → ZAP worker (8085)
+→ spawns ZAP Docker container
+→ worker writes findings directly to Supabase Postgres (pending_alerts, zap_tasks, scan_history)
+3 tools: ZAP (zap.secprima.in), Kali (kali.secprima.in), CICD (cicd.secprima.in) — all on 2nd laptop 10.0.4.182, shared Docker daemon.
+🔴 CRITICAL ISSUES
+C1. Webhook auth bypass + no org scoping (Security)
+app/api/scan/zap/[id]/webhook/route.ts:10-13
+const workerKey = process.env.DOCKER_HOST_API_KEY
+if (workerKey && authHeader !== `Bearer ${workerKey}`) { ...401 }
+Agar DOCKER_HOST_API_KEY unset hai to condition falsy hoti hai → koi bhi auth check nahi. Plus line 23 me SELECT ... FROM scan_history WHERE id=$1 — bina org_id filter. Attacker kisi bhi scan id ko complete/failed mark kar sakta hai, arbitrary alerts inject kar sakta hai. Ye same pattern presence/cleanup:19 me bhi hai.
+C2. SSRF — target_url scheme/IP validation incomplete (Security)
+app/api/scan/zap/start/route.ts:37-55
+
+- Scheme restrict nahi — file://, gopher://, dict:// allowed.
+- Internal IP check sirf hostname string regex pe hai → bypass hote hain: DNS rebinding, decimal/octal IP (2130706433, 0x7f.0.0.1), 0.0.0.0, IPv6-mapped (::ffff:127.0.0.1).
+- Worker side bhi zero validation (vaptshield_zap_scanner/src/index.ts:1924 — confirmed via SSH audit). ZAP container default bridge network pe → 169.254.169.254 (cloud metadata), 127.0.0.1:5432 (Postgres), 6379 (Redis) sab scanable hain. Double SSRF hole.
+C3. Queue is a BLACK HOLE — queued scans never start (Functional)
+app/api/scan/zap/start/route.ts:139-164 queues scans (zap_tasks.status='queued') jab slots full hain. Lekin poore codebase me koi dequeue mechanism nahi — no queued→running transition, no SKIP LOCKED poller, no cron. scan_queue table bhi exist karta hai par dead/unused (koi .ts reference nahi). Frontend (page.tsx:569) expect karta hai queued scan running hoga, par backend kabhi start hi nahi karta. Scan永久 stuck "position X in queue".
+C4. Worker gateway auth is a no-op (Security)
+vaptshield_gateway/src/index.ts:99-105 (2nd laptop) — authMiddleware sirf Bearer prefix check karta hai, token validate nahi karta. Internet-facing entry point. Bearer fake pass ho jata hai.
+C5. World-readable secrets on 2nd laptop (Security)
+5 .env files harsh@10.0.4.182 pe -rw-rw-r-- (world-readable): PGPASSWORD, SUPABASE_SERVICE_ROLE_KEY, DOCKER_HOST_API_KEY, JWT_SECRET, GITHUB_PAT, STRIPE_SECRET_KEY, ENCRYPTION_KEY, etc. Koi bhi local process/user sab secrets padh sakta hai → C1 ka key milta hai → poora system compromise.
+C6. Command injection in CICD worker (Security)
+vaptshield_cicd/src/docker.ts:1277 — execSync(\git clone ... ${url} ...\`) me repoUrl/pat directly shell me interpolate. Metacharacters se host-level RCE as user harsh`. (ZAP se direct nahi, par shared infra hai.)
+🟠 HIGH ISSUES
+H1. ZAP container kill routes to WRONG worker (Bug/Logical)
+lib/docker/manager.ts:83-88 — callWorker routing: if (endpoint.includes("zap")). Lekin killContainer endpoint /kill/${realDockerHash} hai (e.g. /kill/abc123) — me "zap" nahi hai → kali worker (DOCKER_HOST_API_URL) pe bhejta hai, ZAP worker pe nahi. Abhi "works" by accident kyunki sab workers shared Docker daemon share karte hain aur static-key kali /kill ownership check bypass karta hai. Agar workers split ho gaye → ZAP kills silently fail → orphaned containers. Fragile/latent bug.
+H2. Webhook & complete routes can't find the container (Bug)
+webhook/route.ts:73-76 aur complete/route.ts:48-51 sessions dhoondhte hain:
+WHERE container_id = `zap-${id}` OR container_id LIKE `zap-${id}-%`
+Par spawnZapContainer (manager.ts:247-250) docker_sessions.container_id ko real Docker hash se overwrite kar deta hai. To zap-${id} pattern match nahi karta → zero sessions milte hain → container kill nahi hota → slot kabhi free nahi. stop aur stream routes sahi approach (zap_tasks.container_id se) use karte hain, webhook/complete galat. Inconsistent.
+H3. Orphaned containers never cleaned (Functional/Resource leak)
+cleanupOrphanedContainers (manager.ts:427) aur fixStaleRunningScans (manager.ts:518) kabhi kisi route/cron se call nahi hote. Vercel cron sirf presence/cleanup (daily) hai jo presence update karta hai, scans nahi. fixOrgStaleRunningScans (manager.ts:458) sirf naye scan start pe chalta hai aur wo bhi sirf DB rows update karta hai (status='failed'), actual Docker container kill nahi karta. terminal/force-cleanup bhi sirf DB rows DELETE karta hai, worker ko kill call nahi karta. → ZAP containers worker pe accumulate hote hain jabtak worker ka 30-min/4hr timeout na lage.
+H4. ZAP port allocation no collision check (Bug)
+manager.ts:213 — ZAP: port = 8080 + random(100) par usedPorts check nahi (Kali me hai lines 137-147). Do concurrent ZAP scans same port le sakte hain → conflict.
+H5. Credentials stored in plaintext (Security)
+start/route.ts:146 — auth_config + auth_methods (login URLs, tokens, headers, OAuth credentials) zap_tasks.scan_config JSONB me plaintext store hote hain. DB backup/leak pe sab expose. Encryption at rest nahi.
+H6. Client-controlled orgId/projectId unverified on worker (Security)
+Worker /spawn-zap (index.ts:1925) orgId, projectId, scanId body se leta hai bina JWT user ka org verify kiye. Koi authenticated user kisi bhi org ke under scan create kar sakta hai (cross-tenant).
+H7. CICD /kill no ownership check (Security)
+vaptshield_cicd/src/index.ts:87 — killAndRemove(containerId) bina kisi org/user check ke. Koi bhi authenticated user kisi bhi org ka CICD container kill kar sakta hai. Shared Docker daemon hone se ek worker ka kill poore system pe asar karta hai.
+H8. No firewall / direct LAN exposure (Security)
+2nd laptop: UFW inactive, iptables ACCEPT no rules. Worker ports (8080/8082/8084/8085) aur Docker container bindings LAN se directly accessible — Cloudflare tunnel bypass. No fail2ban, SSH password auth on, weak shared password ubuntu@#123@123.
+🟡 MEDIUM ISSUES
+M1. zap_tasks.container_id app se kabhi set nahi (Logical gap)
+App side kahi bhi zap_tasks.container_id update nahi hota (manager.ts sirf docker_sessions.container_id update karta hai). scan-helpers.ts:16 comment bolta hai worker set karta hai. SSH audit ne confirm nahi kiya ki worker actually set karta hai. Agar worker na kare → killZapContainerByScanId hamesha "no container_id" return karta hai → stop/auto-fail me container kill skip ho jata hai. Needs verification on worker.
+M2. Stale cleanup bypasses actual container kill (Logical)
+fixOrgStaleRunningScans (manager.ts:458-516) sirf DB rows fail karta hai + quota decrement karta hai, worker ko container stop nahi karta. Real container orphan rehta hai (H3 se related).
+M3. Quota double-check TOCTOU + redundant logic (Logical)
+start/route.ts:137 checkDockerQuota (no lock) → phir spawnZapContainer → acquireDockerSlot (FOR UPDATE + increment). Beech me start ka apna transaction (176-226) sirf re-check karta hai, increment nahi. Do quota checks, ek increment. Works par over-engineered/fragile. checkDockerQuota bhi cleanupStaleSessions+pruneOldDockerContainers call karta hai (extra latency har start pe).
+M4. active/route quota decrement not transactional (Bug)
+active/route.ts:121-125 manual UPDATE org_quotas SET active=GREATEST(active-1,0) bina FOR UPDATE lock (quota.ts me lock hai). Drift risk. releaseDockerSlot use karna chahiye tha.
+M5. Debug/dead code + info leak in logs (Bug)
+stream/route.ts:37-42 — SELECT id, org_id, status FROM scan_history WHERE id=$1 (no org filter) result allScans kabhi use nahi hota, dead debug code. Lines 29,35,41 org_id/scan ids console.log karte hain. start/stop/complete me ip variable assign hoke kabhi use nahi hota.
+M6. Static-key fallback undermines JWT (Security)
+Sab workers static DOCKER_HOST_API_KEY accept karte hai (deprecated fallback). Ye key C5 me world-readable hai. Kali/ZAP /kill aur /zap-status me org-scope check sirf JWT auth pe lagta hai, static-key pe bypass ho jata hai → cross-org access.
+M7. ZAP container not hardened (Security)
+Worker: no CapDrop, no ReadOnlyRootfs, no no-new-privileges, no gVisor (registered par default nahi), Chrome --no-sandbox, ZAP API 0.0.0.0 pe bind + predictable API key zap-${scanId} (client-supplied scanId). API key URL query params me (logs me leak).
+M8. webhook alert insert = N queries (Performance)
+webhook/route.ts:34-53 — loop me ek-ek alert insert (separate transaction each). Scan me 100s of findings ho sakte hain. Batch insert hona chahiye.
+M9. Webhook mapSeverity missing 'critical' riskcode (Bug-minor)
+webhook/route.ts:89-95 — ZAP riskcode "3" → "critical", par ZAP actual me "high" riskcode=2 as "high", "medium"=1, "low"=0, "info"=3 use karta hai. ZAP ka riskcode 3 = High (0=info,1=low,2=medium,3=high). Yaha "3"→"critical" map ho raha hai galat. Severity inflation bug.
+🟢 LOW ISSUES
+- L1. SSRF check me hostname.includes("metadata.google.internal") — === hona chahiye, includes se partial match risk.
+- L2. vercel.json comment kehta "every 2 min" par schedule 0 0 * * * (daily) hai — mismatch.
+- L3. DB schema drift risk — zap_tasks, pending_alerts kisi migration me defined nahi (out-of-band create), sirf backup SQL me. Version control me nahi.
+- L4. test-worker/route.ts /health bina auth fetch karta hai (admin-only route, OK par worker key header nahi bhejta).
+- L5. Worker logs (zap.log etc.) world-readable — scan targets/tokens leak.
+- L6. Old ai_security_scanner crontab @reboot pe chalta hai — systemd services ke saath conflict.
+- L7. real-zap-scan.ts dead code (ZAP+CICD workers).
+📊 Summary by Level
+Level	Issues	Sabse serious
+Frontend	Frontend assumed queue drain hota hai (page.tsx:569) — backend me nahi	C3
+API routes	Webhook auth bypass (C1), wrong container lookup (H2), SSRF (C2)	C1, C2
+lib (docker/quota)	Kill routing (H1), no port dedup (H4), no cleanup cron (H3)	H1, H3
+Worker (2nd laptop)	Gateway no-op auth (C4), secrets world-readable (C5), no SSRF check (C2), no ownership (H7)	C4, C5
+Database	Queue black hole (C3), dead scan_queue table, schema not in VCS (L3)	C3
+Infra/Network	No firewall (H8), SSH weak, shared Docker daemon	H8
+Secrets	Plaintext creds in DB (H5), world-readable .env (C5)	C5
+Sabse pehle kya fix karna chahiye (priority)
+1. C5 + C4 — .env chmod 600 + gateway JWT validate (quick, blocks auth bypass chain)
+2. C1 — webhook me org_id scope + auth fail-closed (unset key = reject)
+3. C3 — queue drain mechanism add karo (poller/cron jo zap_tasks queued ko SKIP LOCKED se start kare)
+4. C2 — worker pe bhi SSRF validation + scheme allowlist http/https only
+5. H1+H2 — callWorker ko container_id se worker route karo, webhook/complete me zap_tasks.container_id se kill karo

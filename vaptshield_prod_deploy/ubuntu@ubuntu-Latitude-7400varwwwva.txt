@@ -1,0 +1,635 @@
+ubuntu@ubuntu-Latitude-7400:/var/www/vaptshield$ cd /var/www/vaptshield
+
+npm install --legacy-peer-deps
+npm warn EBADENGINE Unsupported engine {
+npm warn EBADENGINE   package: 'puppeteer@25.3.0',
+npm warn EBADENGINE   required: { node: '>=22.12.0' },
+npm warn EBADENGINE   current: { node: 'v20.20.2', npm: '10.8.2' }
+npm warn EBADENGINE }
+npm warn EBADENGINE Unsupported engine {
+npm warn EBADENGINE   package: '@puppeteer/browsers@3.0.6',
+npm warn EBADENGINE   required: { node: '>=22.12.0' },
+npm warn EBADENGINE   current: { node: 'v20.20.2', npm: '10.8.2' }
+npm warn EBADENGINE }
+npm warn EBADENGINE Unsupported engine {
+npm warn EBADENGINE   package: 'puppeteer-core@25.3.0',
+npm warn EBADENGINE   required: { node: '>=22.12.0' },
+npm warn EBADENGINE   current: { node: 'v20.20.2', npm: '10.8.2' }
+npm warn EBADENGINE }
+npm warn deprecated stream-to-promise@2.2.0: Deprecated. Use node:stream/promises and node:stream/consumers instead.
+npm warn deprecated tar@7.5.7: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+npm warn deprecated recharts@2.15.4: 1.x and 2.x branches are no longer active. Bump to Recharts v3 to receive latest features and bugfixes. See https://github.com/recharts/recharts/wiki/3.0-migration-guide
+
+added 1073 packages, and audited 1074 packages in 1m
+
+252 packages are looking for funding
+  run `npm fund` for details
+
+38 vulnerabilities (4 low, 20 moderate, 14 high)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+ubuntu@ubuntu-Latitude-7400:/var/www/vaptshield$ rm -rf .next
+
+npm run build
+
+> vaptshield@0.1.0 build
+> next build
+
+   ▲ Next.js 15.5.18
+   - Environments: .env.local
+   - Experiments (use with caution):
+     · optimizePackageImports
+
+   Creating an optimized production build ...
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (106kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (250kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ⚠ Compiled with warnings in 1845ms
+
+./node_modules/@supabase/supabase-js/dist/index.mjs
+A Node.js API is used (process.version at line: 27) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+./node_modules/@supabase/supabase-js/dist/index.mjs
+./node_modules/@supabase/ssr/dist/module/createBrowserClient.js
+./node_modules/@supabase/ssr/dist/module/index.js
+./lib/supabase/middleware.ts
+
+ ✓ Compiled successfully in 47s
+
+./app/(auth)/login/LoginClient.tsx
+98:10  Warning: 'inviteChecked' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./app/(auth)/register/RegisterClient.tsx
+3:31  Warning: 'Suspense' is defined but never used.  @typescript-eslint/no-unused-vars
+65:9  Warning: 'searchParams' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./app/(auth)/reset-password/ResetPasswordClient.tsx
+57:9  Warning: 'type' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./app/(auth)/verify-otp/VerifyOtpClient.tsx
+41:10  Warning: 'inviteChecked' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./app/(dashboard)/ai/actions.ts
+6:10  Warning: 'headers' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/(dashboard)/analytics/AnalyticsClient.tsx
+6:3  Warning: 'Clock' is defined but never used.  @typescript-eslint/no-unused-vars
+9:3  Warning: 'ArrowUpRight' is defined but never used.  @typescript-eslint/no-unused-vars
+10:3  Warning: 'TrendingDown' is defined but never used.  @typescript-eslint/no-unused-vars
+15:3  Warning: 'BarChart' is defined but never used.  @typescript-eslint/no-unused-vars
+16:3  Warning: 'Bar' is defined but never used.  @typescript-eslint/no-unused-vars
+25:3  Warning: 'LineChart' is defined but never used.  @typescript-eslint/no-unused-vars
+26:3  Warning: 'Line' is defined but never used.  @typescript-eslint/no-unused-vars
+79:9  Warning: 'progressData' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./app/(dashboard)/audit/page.tsx
+5:10  Warning: 'Activity' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/(dashboard)/dashboard/page.tsx
+15:11  Warning: 'VulnQueryResult' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/(dashboard)/findings/FindingsClient.tsx
+139:47  Warning: React Hook useMemo has a missing dependency: 'rawProjects'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+139:48  Warning: React Hook useMemo has a complex expression in the dependency array. Extract it to a separate variable so it can be statically checked.  react-hooks/exhaustive-deps
+140:45  Warning: React Hook useMemo has a missing dependency: 'rawMembers'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+140:46  Warning: React Hook useMemo has a complex expression in the dependency array. Extract it to a separate variable so it can be statically checked.  react-hooks/exhaustive-deps
+183:9  Warning: 'isSingleProjectSelected' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+236:6  Warning: React Hook useCallback has an unnecessary dependency: 'projectParam'. Either exclude it or remove the dependency array.  react-hooks/exhaustive-deps
+586:6  Warning: React Hook useMemo has a missing dependency: 'userRole'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/(dashboard)/findings/[id]/FindingDetailClient.tsx
+158:14  Warning: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/(dashboard)/findings/[id]/page.tsx
+21:11  Warning: 'FindingRaw' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/(dashboard)/findings/actions.ts
+6:10  Warning: 'headers' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/(dashboard)/findings/approval-actions.ts
+5:10  Warning: 'headers' is defined but never used.  @typescript-eslint/no-unused-vars
+10:7  Warning: 'approveSchema' is assigned a value but only used as a type.  @typescript-eslint/no-unused-vars
+14:7  Warning: 'rejectSchema' is assigned a value but only used as a type.  @typescript-eslint/no-unused-vars
+
+./app/(dashboard)/notifications/NotificationsPageClient.tsx
+6:10  Warning: 'Badge' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/(dashboard)/organization/OrganizationClient.tsx
+3:58  Warning: 'CreditCard' is defined but never used.  @typescript-eslint/no-unused-vars
+3:89  Warning: 'Lock' is defined but never used.  @typescript-eslint/no-unused-vars
+3:95  Warning: 'CheckCircle2' is defined but never used.  @typescript-eslint/no-unused-vars
+8:20  Warning: 'PLAN_DETAILS' is defined but never used.  @typescript-eslint/no-unused-vars
+12:10  Warning: 'Dialog' is defined but never used.  @typescript-eslint/no-unused-vars
+12:18  Warning: 'DialogContent' is defined but never used.  @typescript-eslint/no-unused-vars
+12:33  Warning: 'DialogHeader' is defined but never used.  @typescript-eslint/no-unused-vars
+12:47  Warning: 'DialogTitle' is defined but never used.  @typescript-eslint/no-unused-vars
+18:10  Warning: 'cn' is defined but never used.  @typescript-eslint/no-unused-vars
+88:26  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+110:14  Warning: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
+130:14  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+168:14  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+181:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/(dashboard)/profile/ProfileClient.tsx
+40:10  Warning: 'uploadingAvatar' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+177:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/(dashboard)/projects/[id]/ProjectDetailClient.tsx
+469:25  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/(dashboard)/projects/[id]/report/ProjectReportClient.tsx
+6:5  Warning: 'Download' is defined but never used.  @typescript-eslint/no-unused-vars
+14:5  Warning: 'RefreshCw' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/(dashboard)/projects/actions.ts
+473:9  Warning: 'opStart' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./app/(dashboard)/reports/ReportsClient.tsx
+22:57  Warning: 'role' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/(dashboard)/scanner/cicd/page.tsx
+15:8  Warning: 'ToolCard3d' is defined but never used.  @typescript-eslint/no-unused-vars
+37:5  Warning: 'activeScanId' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+38:5  Warning: 'activeRepoName' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+39:5  Warning: 'streamLogs' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+40:5  Warning: 'streamStatus' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+41:5  Warning: 'streamFindings' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+42:5  Warning: 'streamToolBreakdown' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+43:5  Warning: 'streamProgress' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+44:5  Warning: 'streamError' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+45:5  Warning: 'pipelineStages' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+46:5  Warning: 'logExpanded' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+47:5  Warning: 'logCollapsed' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+48:5  Warning: 'toolCardsStatus' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+49:5  Warning: 'scanResult' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+50:5  Warning: 'scanStartTime' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+51:5  Warning: 'scanElapsed' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+52:5  Warning: 'sseConnectedRef' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+53:5  Warning: 'setActiveScanId' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+55:5  Warning: 'setLogExpanded' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+56:5  Warning: 'setLogCollapsed' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+57:5  Warning: 'connectSse' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+58:5  Warning: 'disconnectSse' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+90:5  Warning: 'userRole' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+105:5  Warning: 'setExpandedFindings' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./app/(dashboard)/scanner/history/page.tsx
+11:41  Warning: 'CardTitle' is defined but never used.  @typescript-eslint/no-unused-vars
+126:10  Warning: 'autoOpenScanId' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+127:10  Warning: 'autoFilterRepo' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./app/(dashboard)/scanner/terminal/page.tsx
+6:27  Warning: 'Clock' is defined but never used.  @typescript-eslint/no-unused-vars
+9:17  Warning: 'RefreshCw' is defined but never used.  @typescript-eslint/no-unused-vars
+63:11  Warning: 'InUseInfo' is defined but never used.  @typescript-eslint/no-unused-vars
+133:10  Warning: 'error' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+157:10  Warning: 'kaliTaskId' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+194:9  Warning: 'setStoreSelectedProject' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+196:9  Warning: 'addStoreFindings' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+197:9  Warning: 'removeStoreFindings' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+198:9  Warning: 'setStoreAiEnrichment' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+199:9  Warning: 'removeStoreAiEnrichment' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+200:9  Warning: 'setStoreKaliTaskId' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+203:9  Warning: 'storeKaliTaskId' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+236:6  Warning: React Hook useEffect has missing dependencies: 'aiEnrichments', 'findings.length', 'selectedProject', and 'session'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+537:14  Warning: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
+961:6  Warning: React Hook useCallback has a missing dependency: 'setStoreSessionStartedAt'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+1065:6  Warning: React Hook useCallback has a missing dependency: 'resetStoreSession'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/(dashboard)/scanner/zap/page.tsx
+6:10  Warning: 'Play' is defined but never used.  @typescript-eslint/no-unused-vars
+7:17  Warning: 'ShieldAlert' is defined but never used.  @typescript-eslint/no-unused-vars
+8:11  Warning: 'Settings2' is defined but never used.  @typescript-eslint/no-unused-vars
+8:72  Warning: 'AtSign' is defined but never used.  @typescript-eslint/no-unused-vars
+8:80  Warning: 'EyeOff' is defined but never used.  @typescript-eslint/no-unused-vars
+9:3  Warning: 'ToggleLeft' is defined but never used.  @typescript-eslint/no-unused-vars
+9:15  Warning: 'ToggleRight' is defined but never used.  @typescript-eslint/no-unused-vars
+10:39  Warning: 'SlidersHorizontal' is defined but never used.  @typescript-eslint/no-unused-vars
+11:56  Warning: 'ChevronUp' is defined but never used.  @typescript-eslint/no-unused-vars
+11:96  Warning: 'PieChartIcon' is defined but never used.  @typescript-eslint/no-unused-vars
+15:10  Warning: 'Card' is defined but never used.  @typescript-eslint/no-unused-vars
+15:16  Warning: 'CardContent' is defined but never used.  @typescript-eslint/no-unused-vars
+15:29  Warning: 'CardHeader' is defined but never used.  @typescript-eslint/no-unused-vars
+15:41  Warning: 'CardTitle' is defined but never used.  @typescript-eslint/no-unused-vars
+181:10  Warning: 'PhaseIcon' is defined but never used.  @typescript-eslint/no-unused-vars
+186:10  Warning: 'SeverityDot' is defined but never used.  @typescript-eslint/no-unused-vars
+248:10  Warning: 'lastLogLine' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+252:10  Warning: 'containerRunning' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+260:9  Warning: 'prevScanType' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+364:6  Warning: React Hook useEffect has a missing dependency: 'attachStreamHandlers'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+444:9  Warning: 'criticalCount' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+526:19  Warning: 'enabled' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+585:6  Warning: React Hook useCallback has missing dependencies: 'attachStreamHandlers', 'authConfig', 'enableAjaxSpider', and 'enableJsCrawl'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+808:9  Warning: 'ScanTypeIcon' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+815:9  Warning: 'isIdle' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+854:6  Warning: React Hook useEffect has a missing dependency: 'findingsTab'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/(dashboard)/settings/SettingsClient.tsx
+9:5  Warning: 'Activity' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/(dashboard)/super-admin/dashboard/loading.tsx
+1:10  Warning: 'Home' is defined but never used.  @typescript-eslint/no-unused-vars
+1:16  Warning: 'Building2' is defined but never used.  @typescript-eslint/no-unused-vars
+1:27  Warning: 'Users' is defined but never used.  @typescript-eslint/no-unused-vars
+1:34  Warning: 'BarChart3' is defined but never used.  @typescript-eslint/no-unused-vars
+1:45  Warning: 'Clock' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/(dashboard)/super-admin/dashboard/page.tsx
+8:10  Warning: 'DateRangePickerWrapper' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/(dashboard)/super-admin/organizations/OrganizationsClient.tsx
+68:10  Warning: 'isPending' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+147:14  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+167:14  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/(dashboard)/super-admin/users/UsersClient.tsx
+5:10  Warning: 'Users' is defined but never used.  @typescript-eslint/no-unused-vars
+5:27  Warning: 'Mail' is defined but never used.  @typescript-eslint/no-unused-vars
+5:33  Warning: 'Shield' is defined but never used.  @typescript-eslint/no-unused-vars
+5:41  Warning: 'UserMinus' is defined but never used.  @typescript-eslint/no-unused-vars
+5:102  Warning: 'ExternalLink' is defined but never used.  @typescript-eslint/no-unused-vars
+105:14  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/(dashboard)/super-admin/users/page.tsx
+23:24  Warning: 'error' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./app/(dashboard)/users/InviteUserModal.tsx
+35:15  Warning: 'Role' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/(dashboard)/users/UsersClient.tsx
+163:14  Warning: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/(dashboard)/users/actions.ts
+10:10  Warning: 'headers' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/api/ai/patch/route.ts
+4:26  Warning: 'sanitizeLabel' is defined but never used.  @typescript-eslint/no-unused-vars
+4:41  Warning: 'sanitizeCode' is defined but never used.  @typescript-eslint/no-unused-vars
+4:55  Warning: 'detectInjectionAttempt' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/api/cicd/config/route.ts
+144:12  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+210:12  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+268:12  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+295:12  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/api/cicd/quota/route.ts
+57:12  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/api/cicd/scan-all/route.ts
+25:28  Warning: 'req' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/api/findings/[id]/approve/route.ts
+29:12  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/api/findings/[id]/route.ts
+29:12  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/api/findings/route.ts
+4:10  Warning: 'headers' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/api/invite/validate/route.ts
+6:11  Warning: 'InviteWithOrg' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/api/kali/ai-parse/route.ts
+58:11  Warning: 'ip' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+136:9  Warning: 'alertIds' is never reassigned. Use 'const' instead.  prefer-const
+
+./app/api/kali/parse-text/route.ts
+66:11  Warning: 'ip' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./app/api/kali/scan/[id]/stream/route.ts
+38:13  Warning: 'pollInterval' is never reassigned. Use 'const' instead.  prefer-const
+
+./app/api/kali/scan/route.ts
+8:10  Warning: 'dedupFindings' is defined but never used.  @typescript-eslint/no-unused-vars
+220:11  Warning: 'ip' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./app/api/onboarding/complete/route.ts
+9:28  Warning: 'req' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/api/projects/route.ts
+40:12  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/api/reports/[id]/docx/route.ts
+3:10  Warning: 'getSupabaseAdmin' is defined but never used.  @typescript-eslint/no-unused-vars
+31:17  Warning: 'authenticated' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+32:22  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/api/reports/[id]/history/route.ts
+10:10  Warning: 'logAudit' is defined but never used.  @typescript-eslint/no-unused-vars
+12:30  Warning: 'VersionHistoryEntry' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/api/reports/[id]/route.ts
+61:9  Warning: 'lockStatus' is never reassigned. Use 'const' instead.  prefer-const
+
+./app/api/reports/generate/route.ts
+15:3  Warning: 'updateReportUrls' is defined but never used.  @typescript-eslint/no-unused-vars
+17:3  Warning: 'appendVersion' is defined but never used.  @typescript-eslint/no-unused-vars
+18:3  Warning: 'ReportContent' is defined but never used.  @typescript-eslint/no-unused-vars
+21:10  Warning: 'GenerateRequestSchema' is defined but never used.  @typescript-eslint/no-unused-vars
+21:33  Warning: 'formatZodError' is defined but never used.  @typescript-eslint/no-unused-vars
+22:10  Warning: 'execSync' is defined but never used.  @typescript-eslint/no-unused-vars
+23:8  Warning: 'fs' is defined but never used.  @typescript-eslint/no-unused-vars
+24:8  Warning: 'path' is defined but never used.  @typescript-eslint/no-unused-vars
+25:8  Warning: 'os' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/api/scan/cicd/[id]/pdf/route.ts
+108:16  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+113:12  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/api/scan/cicd/[id]/stream/route.ts
+117:42  Warning: 'scanStatus' is defined but never used.  @typescript-eslint/no-unused-vars
+249:12  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/api/scan/zap/[id]/complete/route.ts
+22:11  Warning: 'ip' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./app/api/scan/zap/[id]/stop/route.ts
+22:11  Warning: 'ip' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./app/api/scan/zap/[id]/stream/route.ts
+32:21  Warning: 'allScans' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./app/api/scan/zap/active/route.ts
+28:27  Warning: 'req' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/api/scan/zap/start/route.ts
+24:11  Warning: 'ip' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./app/api/scan-findings/bulk-approve/route.ts
+49:20  Warning: 'count' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./app/api/terminal/active/route.ts
+4:27  Warning: 'req' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/api/terminal/force-cleanup/route.ts
+6:28  Warning: 'req' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/CinematicBackground.tsx
+12:21  Warning: 'phases' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./components/findings/ApproveButton.tsx
+50:14  Warning: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
+78:14  Warning: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/findings/CvssCalculator.tsx
+3:31  Warning: 'useMemo' is defined but never used.  @typescript-eslint/no-unused-vars
+4:27  Warning: 'getSeverityFromScore' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/findings/DiscussionThread.tsx
+243:14  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+269:16  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+290:16  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/findings/FindingForm.tsx
+16:3  Warning: 'Users' is defined but never used.  @typescript-eslint/no-unused-vars
+20:3  Warning: 'Paperclip' is defined but never used.  @typescript-eslint/no-unused-vars
+26:3  Warning: 'RefreshCcw' is defined but never used.  @typescript-eslint/no-unused-vars
+49:34  Warning: 'AvatarImage' is defined but never used.  @typescript-eslint/no-unused-vars
+104:10  Warning: 'isValidUrlProtocol' is defined but never used.  @typescript-eslint/no-unused-vars
+184:9  Warning: 'filteredMembers' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+236:6  Warning: React Hook useMemo has a missing dependency: 'projects'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+236:20  Warning: React Hook useMemo has a complex expression in the dependency array. Extract it to a separate variable so it can be statically checked.  react-hooks/exhaustive-deps
+239:5  Warning: Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any').
+403:10  Warning: 'isRefreshingVersion' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+448:6  Warning: React Hook useEffect has a missing dependency: 'initialData.vuln_attachments'. Either include it or remove the dependency array. If 'setAttachments' needs the current value of 'initialData.vuln_attachments', you can also switch to useReducer instead of useState and read 'initialData.vuln_attachments' in the reducer.  react-hooks/exhaustive-deps
+580:20  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/findings/PoCBuilderSandbox.tsx
+4:35  Warning: 'PoCImage' is defined but never used.  @typescript-eslint/no-unused-vars
+93:18  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/findings/PoCStepBuilder.tsx
+7:5  Warning: 'GripVertical' is defined but never used.  @typescript-eslint/no-unused-vars
+8:14  Warning: 'ImageIcon' is defined but never used.  @typescript-eslint/no-unused-vars
+14:5  Warning: 'Loader2' is defined but never used.  @typescript-eslint/no-unused-vars
+26:10  Warning: 'cn' is defined but never used.  @typescript-eslint/no-unused-vars
+28:10  Warning: 'getBrowserClient' is defined but never used.  @typescript-eslint/no-unused-vars
+70:51  Warning: 'projectId' is defined but never used.  @typescript-eslint/no-unused-vars
+70:62  Warning: 'findingId' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/findings/PoCViewer.tsx
+3:24  Warning: 'Zap' is defined but never used.  @typescript-eslint/no-unused-vars
+4:10  Warning: 'Card' is defined but never used.  @typescript-eslint/no-unused-vars
+5:10  Warning: 'cn' is defined but never used.  @typescript-eslint/no-unused-vars
+36:18  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/findings/PocUploader.tsx
+198:57  Warning: '_unused' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/findings/PocUploaderV2.tsx
+4:27  Warning: 'ImageIcon' is defined but never used.  @typescript-eslint/no-unused-vars
+4:38  Warning: 'X' is defined but never used.  @typescript-eslint/no-unused-vars
+6:10  Warning: 'Button' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/findings/RemediationForm.tsx
+12:3  Warning: 'FileText' is defined but never used.  @typescript-eslint/no-unused-vars
+24:10  Warning: 'Input' is defined but never used.  @typescript-eslint/no-unused-vars
+74:14  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/findings/ZapAlertDetail.tsx
+8:33  Warning: 'Bug' is defined but never used.  @typescript-eslint/no-unused-vars
+8:38  Warning: 'Crosshair' is defined but never used.  @typescript-eslint/no-unused-vars
+82:10  Warning: 'SeverityDot' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/findings/detail/FindingSidebar.tsx
+8:3  Warning: 'Shield' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/findings/detail/FindingStatusActions.tsx
+3:10  Warning: 'History' is defined but never used.  @typescript-eslint/no-unused-vars
+3:19  Warning: 'Target' is defined but never used.  @typescript-eslint/no-unused-vars
+3:27  Warning: 'Users' is defined but never used.  @typescript-eslint/no-unused-vars
+3:34  Warning: 'ShieldCheck' is defined but never used.  @typescript-eslint/no-unused-vars
+3:47  Warning: 'RefreshCw' is defined but never used.  @typescript-eslint/no-unused-vars
+3:58  Warning: 'Trash2' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/layout/Sidebar.tsx
+25:3  Warning: 'Sparkles' is defined but never used.  @typescript-eslint/no-unused-vars
+27:3  Warning: 'FileSearch' is defined but never used.  @typescript-eslint/no-unused-vars
+31:3  Warning: 'CreditCard' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/layout/Topbar.tsx
+8:16  Warning: 'Search' is defined but never used.  @typescript-eslint/no-unused-vars
+10:10  Warning: 'Input' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/organization/DynamicTeamManagement.tsx
+49:9  Warning: 'router' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+77:6  Warning: React Hook useEffect has a missing dependency: 'fetchTeamsAndUsers'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+172:14  Warning: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/organization/billing/BillingClient.tsx
+3:10  Warning: 'Check' is defined but never used.  @typescript-eslint/no-unused-vars
+3:25  Warning: 'Zap' is defined but never used.  @typescript-eslint/no-unused-vars
+3:30  Warning: 'Building2' is defined but never used.  @typescript-eslint/no-unused-vars
+3:41  Warning: 'Loader2' is defined but never used.  @typescript-eslint/no-unused-vars
+3:60  Warning: 'CreditCard' is defined but never used.  @typescript-eslint/no-unused-vars
+3:72  Warning: 'Lock' is defined but never used.  @typescript-eslint/no-unused-vars
+3:78  Warning: 'CheckCircle2' is defined but never used.  @typescript-eslint/no-unused-vars
+5:10  Warning: 'Badge' is defined but never used.  @typescript-eslint/no-unused-vars
+11:10  Warning: 'cn' is defined but never used.  @typescript-eslint/no-unused-vars
+30:19  Warning: 'setLoading' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+50:26  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+89:14  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/projects/MemberAssignment.tsx
+19:10  Warning: 'createNotification' is defined but never used.  @typescript-eslint/no-unused-vars
+47:20  Warning: 'currentUserProfile' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+225:14  Warning: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
+344:29  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./components/projects/ProjectCard.tsx
+4:84  Warning: 'ChevronRight' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/scanner/DockerQuotaBadge.tsx
+16:36  Warning: 'orgId' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/scanner/cicd/AIPatchInline.tsx
+74:18  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/scanner/cicd/FindingsPanel.tsx
+12:27  Warning: 'QuotaInfo' is defined but never used.  @typescript-eslint/no-unused-vars
+45:3  Warning: 'toolCardsStatus' is defined but never used.  @typescript-eslint/no-unused-vars
+46:3  Warning: 'streamProgress' is defined but never used.  @typescript-eslint/no-unused-vars
+47:3  Warning: 'configs' is defined but never used.  @typescript-eslint/no-unused-vars
+57:9  Warning: 'router' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./components/scanner/cicd/PipelineStages.tsx
+6:10  Warning: 'Badge' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/scanner/cicd/RepoConfigPanel.tsx
+10:60  Warning: 'DialogTrigger' is defined but never used.  @typescript-eslint/no-unused-vars
+15:28  Warning: 'Terminal' is defined but never used.  @typescript-eslint/no-unused-vars
+15:38  Warning: 'Eye' is defined but never used.  @typescript-eslint/no-unused-vars
+15:43  Warning: 'EyeOff' is defined but never used.  @typescript-eslint/no-unused-vars
+15:51  Warning: 'ChevronUp' is defined but never used.  @typescript-eslint/no-unused-vars
+70:16  Warning: 'quota' is defined but never used.  @typescript-eslint/no-unused-vars
+73:3  Warning: 'isPublicGitHub' is defined but never used.  @typescript-eslint/no-unused-vars
+73:19  Warning: 'isPrivateUrl' is defined but never used.  @typescript-eslint/no-unused-vars
+73:33  Warning: 'autoDetectedPublic' is defined but never used.  @typescript-eslint/no-unused-vars
+78:42  Warning: 'label' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/shared/ActivityPulse.tsx
+46:8  Warning: React Hook useEffect has missing dependencies: 'PULSE_INTERVAL' and 'sendPulse'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/shared/TerminalHeartbeatProvider.tsx
+13:32  Warning: 'isRunning' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./components/super-admin/analytics/AnalyticsClient.tsx
+16:3  Warning: 'Loader2' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/super-admin/dashboard/OrgGrowthChart.tsx
+51:11  Warning: 'current' is never reassigned. Use 'const' instead.  prefer-const
+
+./components/super-admin/organizations/OrgAuditLogs.tsx
+9:3  Warning: 'UserCog' is defined but never used.  @typescript-eslint/no-unused-vars
+10:3  Warning: 'Building' is defined but never used.  @typescript-eslint/no-unused-vars
+200:14  Warning: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/super-admin/organizations/OrgManagement.tsx
+15:72  Warning: 'Check' is defined but never used.  @typescript-eslint/no-unused-vars
+25:10  Warning: 'cn' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/super-admin/settings/SuperAdminSettingsClient.tsx
+7:3  Warning: 'Zap' is defined but never used.  @typescript-eslint/no-unused-vars
+16:3  Warning: 'Mail' is defined but never used.  @typescript-eslint/no-unused-vars
+17:3  Warning: 'Key' is defined but never used.  @typescript-eslint/no-unused-vars
+18:3  Warning: 'Users' is defined but never used.  @typescript-eslint/no-unused-vars
+19:3  Warning: 'FolderKanban' is defined but never used.  @typescript-eslint/no-unused-vars
+20:3  Warning: 'Power' is defined but never used.  @typescript-eslint/no-unused-vars
+21:3  Warning: 'PowerOff' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/tracker/TrackerGrid.tsx
+3:40  Warning: 'useRef' is defined but never used.  @typescript-eslint/no-unused-vars
+6:3  Warning: 'Filter' is defined but never used.  @typescript-eslint/no-unused-vars
+13:3  Warning: 'Clock' is defined but never used.  @typescript-eslint/no-unused-vars
+17:3  Warning: 'ChevronUp' is defined but never used.  @typescript-eslint/no-unused-vars
+18:3  Warning: 'ChevronDown' is defined but never used.  @typescript-eslint/no-unused-vars
+22:3  Warning: 'ShieldCheck' is defined but never used.  @typescript-eslint/no-unused-vars
+116:74  Warning: 'orgId' is defined but never used.  @typescript-eslint/no-unused-vars
+319:6  Warning: React Hook useEffect has a missing dependency: 'table'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+319:7  Warning: React Hook useEffect has a complex expression in the dependency array. Extract it to a separate variable so it can be statically checked.  react-hooks/exhaustive-deps
+
+./lib/docker/manager.ts
+417:7  Warning: 'cleaned' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./lib/hooks/useNotifications.ts
+216:6  Warning: React Hook useEffect has a missing dependency: 'router'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./lib/hooks/usePresence.ts
+3:34  Warning: 'useRef' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./lib/reports/engine.ts
+7:30  Warning: 'VulnAttachment' is defined but never used.  @typescript-eslint/no-unused-vars
+1193:21  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+1235:14  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+1274:11  Warning: 'data' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./lib/reports/modern-generator.ts
+74:26  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./lib/reports/schema.ts
+11:7  Warning: 'SEVERITY_ENUM' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./lib/supabase/actions.ts
+27:11  Warning: 'supabaseAdmin' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+160:14  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+209:13  Warning: 'remaining' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./lib/supabase/billing-actions.ts
+3:10  Warning: 'getSupabaseAdmin' is defined but never used.  @typescript-eslint/no-unused-vars
+6:10  Warning: 'headers' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./lib/supabase/settings-actions.ts
+3:10  Warning: 'getSupabaseAdmin' is defined but never used.  @typescript-eslint/no-unused-vars
+6:10  Warning: 'headers' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./lib/supabase/super-admin-actions.ts
+215:9  Warning: 'ipAddress' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+216:9  Warning: 'userAgent' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+365:11  Warning: 'ipAddress' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+366:11  Warning: 'userAgent' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+457:13  Warning: 'ipAddress' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+458:13  Warning: 'userAgent' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./lib/utils/encryption.ts
+5:7  Warning: 'TAG_LENGTH' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./lib/utils/rbac-server.ts
+28:14  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./lib/utils/security-guard.ts
+47:1  Warning: Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any').
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+Failed to compile.
+
+./lib/ai/queue.ts:16:3
+Type error: Type 'Redis' is not assignable to type 'ConnectionOptions'.
+  Type 'Redis' is not assignable to type 'ClusterOptions | Redis | IRedisClient | Cluster'.
+    Type 'import("/var/www/vaptshield/node_modules/ioredis/built/Redis").default' is not assignable to type 'import("/var/www/vaptshield/node_modules/bullmq/node_modules/ioredis/built/Redis").default'.
+      Types of property 'options' are incompatible.
+        Type 'import("/var/www/vaptshield/node_modules/ioredis/built/redis/RedisOptions").RedisOptions' is not assignable to type 'import("/var/www/vaptshield/node_modules/bullmq/node_modules/ioredis/built/redis/RedisOptions").RedisOptions'.
+          Type 'RedisOptions' is not assignable to type 'CommonRedisOptions'.
+            Types of property 'Connector' are incompatible.
+              Type 'import("/var/www/vaptshield/node_modules/ioredis/built/connectors/ConnectorConstructor").default | undefined' is not assignable to type 'import("/var/www/vaptshield/node_modules/bullmq/node_modules/ioredis/built/connectors/ConnectorConstructor").default | undefined'.
+                Type 'import("/var/www/vaptshield/node_modules/ioredis/built/connectors/ConnectorConstructor").default' is not assignable to type 'import("/var/www/vaptshield/node_modules/bullmq/node_modules/ioredis/built/connectors/ConnectorConstructor").default'.
+                  Type 'import("/var/www/vaptshield/node_modules/ioredis/built/connectors/AbstractConnector").default' is not assignable to type 'import("/var/www/vaptshield/node_modules/bullmq/node_modules/ioredis/built/connectors/AbstractConnector").default'.
+                    Property 'connecting' is protected but type 'AbstractConnector' is not a class derived from 'AbstractConnector'.
+
+  14 |
+  15 | export const aiQueue = new Queue('ai-requests', {
+> 16 |   connection: redisConnection,
+     |   ^
+  17 |   defaultJobOptions: {
+  18 |     attempts: 3,
+  19 |     backoff: {
+Next.js build worker exited with code: 1 and signal: null
+ubuntu@ubuntu-Latitude-7400:/var/www/vaptshield$
